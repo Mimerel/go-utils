@@ -26,7 +26,7 @@ type HttpRequestParams struct {
 
 var log = logging.MustGetLogger("default")
 
-func HttpExecuteRequest(requestParams *RequestParams) (err error, response *http.Response) {
+func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *http.Response) {
 	if requestParams.Retry <= 0 {
 		requestParams.Retry = 1
 	}
