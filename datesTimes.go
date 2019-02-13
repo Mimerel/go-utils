@@ -31,3 +31,8 @@ func Timestamp2EndOfYear(moment time.Time) time.Time {
   return Timestamp2BeginningOfYear(moment).AddDate(1, 0, 0).Add(-time.Nanosecond)
 }
 
+func TimestampFromYYYY-MM-DD(moment string) (date time.Time, err error) {
+  moment += "T12:00:00.000Z"
+  layout := "2006-01-02T15:04:05.000Z"
+  return time.ParseInLocation(layout, global.Period.Date,time.Local)
+}
