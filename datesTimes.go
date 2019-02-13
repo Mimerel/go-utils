@@ -34,5 +34,5 @@ func Timestamp2EndOfYear(moment time.Time) time.Time {
 func TimestampFromYYYYMMDD(moment string) (date time.Time, err error) {
   moment += "T12:00:00.000Z"
   layout := "2006-01-02T15:04:05.000Z"
-  return time.ParseInLocation(layout, global.Period.Date,time.Local)
+  return time.ParseInLocation(layout, moment, time.Local)
 }
