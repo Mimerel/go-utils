@@ -11,7 +11,7 @@ import (
 	"github.com/op/go-logging"
 )
 
-type RequestParams struct {
+type HttpRequestParams struct {
 	Url string
 	Method string
 	Body string
@@ -26,7 +26,7 @@ type RequestParams struct {
 
 var log = logging.MustGetLogger("default")
 
-func ExecuteRequest(requestParams *RequestParams) (err error, response *http.Response) {
+func HttpExecuteRequest(requestParams *RequestParams) (err error, response *http.Response) {
 	if requestParams.Retry <= 0 {
 		requestParams.Retry = 1
 	}
@@ -92,7 +92,7 @@ func ExecuteRequest(requestParams *RequestParams) (err error, response *http.Res
 	return nil, response
 }
 
-func ReadResponse(response *http.Response) (err error, body []byte) {
+func HttpReadResponse(response *http.Response) (err error, body []byte) {
 	log.Debugf("Reading Response")
 	body, err = ioutil.ReadAll(response.Body)
 	if err != nil {
