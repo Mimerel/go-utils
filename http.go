@@ -21,7 +21,7 @@ type HttpRequestParams struct {
 	Insecure bool
 	Retry int
 	LogPrefix string
-	DelayBetweenRetry int
+	DelayBetweenRetry time.Duration
 }
 
 
