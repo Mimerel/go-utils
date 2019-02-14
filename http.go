@@ -21,6 +21,7 @@ type HttpRequestParams struct {
 	Insecure bool
 	Retry int
 	LogPrefix string
+	DelayBetweenRetry int
 }
 
 
@@ -74,6 +75,10 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 			insecure = true
 		}
 
+		if requestParams.DelayBetweenRetry == 0 {
+			requestParams.DelayBetweenRetry = 1
+		}
+		
 		log.Debugf(requestParams.LogPrefix+"Request run in insecure mode ? %t", insecure)
 		httpClient = http.Client{Timeout: timeout, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: insecure}}}
 		response, err = httpClient.Do(request)
@@ -83,7 +88,7 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 			if requestParams.Retry == 0 {
 				return err, nil
 			} else {
-				time.Sleep(5 * time.Second)
+				time.Sleep(requestParams.DelayBetweenRetry * time.Second)
 			}
 		} else {
 			requestParams.Retry = 0
