@@ -86,7 +86,7 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 			requestParams.Retry -= 1
 			log.Errorf(requestParams.LogPrefix + "Unable to execute Request %d reties left, %+v", requestParams.Retry, err)
 			if requestParams.Retry == 0 {
-				return err, nil
+				return err, response
 			} else {
 				time.Sleep(requestParams.DelayBetweenRetry * time.Second)
 			}
@@ -105,6 +105,6 @@ func HttpReadResponse(response *http.Response) (err error, body []byte) {
 		return err, nil
 	}
 	response.Body.Close()
-	log.Debugf("Response : %+v", string(body))
+	// log.Debugf("Response : %+v", string(body))
 	return nil, body
 }
