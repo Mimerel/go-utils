@@ -1,4 +1,4 @@
-package formating
+package go-utils
 
 import (
 	"fmt"
