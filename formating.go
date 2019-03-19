@@ -7,7 +7,7 @@ import (
 
 type TableData [][]string
 
-func New() (t *TableData) {
+func NewTable() (t *TableData) {
 	t = &TableData{}
 	return t
 }
