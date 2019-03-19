@@ -1,4 +1,4 @@
-package go-utils
+package go_utils
 
 import (
 	"fmt"
