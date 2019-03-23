@@ -1,43 +1,95 @@
 package go_utils
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
-func ScanDirectory(path string, extensions []string, ignore []string) (folders []string, files []string, scanError []error) {
-	filepath.Walk(path, func(path string, f os.FileInfo, err error) (error) {
+type ScanParams struct {
+	Request Request
+	Result  Result
+}
+
+type Request struct {
+	Path       string
+	Extensions []string
+	Ignore     []string
+	MinAge     time.Duration
+}
+
+type Result struct {
+	Folders []string
+	Files   []*Files
+	Errors  []error
+}
+
+type Files struct {
+	Name      string
+	FullName  string
+	FullPath  string
+	Path      string
+	Extension string
+}
+
+func NewParams() (params *ScanParams) {
+	return &ScanParams{}
+}
+
+func (params *ScanParams) ScanFolder() {
+	fmt.Printf("Starting\n")
+
+	filepath.Walk(params.Request.Path, func(path string, f os.FileInfo, err error) (error) {
 		skip := false
-		for _, i := range ignore {
+		hasExtension := true
+		ageConstraint := true
+		for _, i := range params.Request.Ignore {
 
 			if strings.Index(path, i) != -1 {
 				skip = true
 			}
 		}
-		hasExtension := false
-		for _, i := range extensions {
-			if strings.HasSuffix(path, i) {
-				hasExtension = true
+
+		if len(params.Request.Extensions) > 0 {
+			hasExtension = false
+			for _, i := range params.Request.Extensions {
+				if strings.HasSuffix(path, i) {
+					hasExtension = true
+				}
 			}
 		}
-
-		if skip == false && hasExtension {
+		if params.Request.MinAge > 0 {
+			if f.ModTime().After(time.Now().Local().Add(- params.Request.MinAge)) {
+				ageConstraint = false
+			}
+		}
+		if skip == false && hasExtension && ageConstraint{
 			f, err = os.Stat(path)
 			if err != nil {
-				scanError = append(scanError, err)
+				params.Result.Errors = append(params.Result.Errors, err)
 			}
 			f_mode := f.Mode()
 			if f_mode.IsDir() {
-				folders = append(folders, path)
-			} else if f_mode.IsRegular(){
-				files = append(files, path)
+				fmt.Printf("Adding folder %s\n", path)
+
+				params.Result.Folders = append(params.Result.Folders, path)
+			} else if f_mode.IsRegular() {
+				newFile := new(Files)
+				newFile.FullName = f.Name()
+				newFile.FullPath = path
+				newFile.Path = strings.Replace(newFile.FullPath, newFile.Name, "", 1)
+				tempSplit := strings.Split(newFile.FullName, ".")
+				newFile.Extension = "." + tempSplit[len(tempSplit)-1]
+				newFile.Name = strings.Replace(newFile.FullName, newFile.Extension, "", 1)
+				fmt.Printf("Adding file  %v+\n", newFile)
+				params.Result.Files = append(params.Result.Files, newFile)
 			}
 		}
 		return nil
 	})
-	return folders, files, scanError
 }
 
 func CopyFileContents(src, dst string) (err error) {
