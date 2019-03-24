@@ -1,7 +1,6 @@
 package go_utils
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -40,7 +39,6 @@ func NewParams() (params *ScanParams) {
 }
 
 func (params *ScanParams) ScanFolder() {
-	fmt.Printf("Starting\n")
 
 	filepath.Walk(params.Request.Path, func(path string, f os.FileInfo, err error) (error) {
 		skip := false
@@ -73,7 +71,6 @@ func (params *ScanParams) ScanFolder() {
 			}
 			f_mode := f.Mode()
 			if f_mode.IsDir() {
-				fmt.Printf("Adding folder %s\n", path)
 
 				params.Result.Folders = append(params.Result.Folders, path)
 			} else if f_mode.IsRegular() {
@@ -84,7 +81,6 @@ func (params *ScanParams) ScanFolder() {
 				tempSplit := strings.Split(newFile.FullName, ".")
 				newFile.Extension = "." + tempSplit[len(tempSplit)-1]
 				newFile.Name = strings.Replace(newFile.FullName, newFile.Extension, "", 1)
-				fmt.Printf("Adding file  %v+\n", newFile)
 				params.Result.Files = append(params.Result.Files, newFile)
 			}
 		}
