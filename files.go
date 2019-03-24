@@ -32,6 +32,7 @@ type Files struct {
 	FullPath  string
 	Path      string
 	Extension string
+	Size      int64
 }
 
 func NewParams() (params *ScanParams) {
@@ -64,7 +65,7 @@ func (params *ScanParams) ScanFolder() {
 				ageConstraint = false
 			}
 		}
-		if skip == false && hasExtension && ageConstraint{
+		if skip == false && hasExtension && ageConstraint {
 			f, err = os.Stat(path)
 			if err != nil {
 				params.Result.Errors = append(params.Result.Errors, err)
@@ -81,6 +82,7 @@ func (params *ScanParams) ScanFolder() {
 				tempSplit := strings.Split(newFile.FullName, ".")
 				newFile.Extension = "." + tempSplit[len(tempSplit)-1]
 				newFile.Name = strings.Replace(newFile.FullName, newFile.Extension, "", 1)
+				newFile.Size = f.Size()
 				params.Result.Files = append(params.Result.Files, newFile)
 			}
 		}
