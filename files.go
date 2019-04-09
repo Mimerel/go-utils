@@ -1,6 +1,8 @@
 package go_utils
 
 import (
+	"archive/zip"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -41,7 +43,7 @@ func NewParams() (params *ScanParams) {
 
 func (params *ScanParams) ScanFolder() {
 
-	filepath.Walk(params.Request.Path, func(path string, f os.FileInfo, err error) (error) {
+	_ = filepath.Walk(params.Request.Path, func(path string, f os.FileInfo, err error) (error) {
 		skip := false
 		hasExtension := true
 		ageConstraint := true
@@ -111,4 +113,64 @@ func CopyFileContents(src, dst string) (err error) {
 	}
 	err = out.Sync()
 	return
+}
+
+/**
+Method that unzips a file from the given location to the given destination
+*/
+func unzip(src string, dest string) (error) {
+
+	var filenames []string
+
+	r, err := zip.OpenReader(src)
+	defer r.Close()
+
+	if err != nil {
+		return err
+	}
+
+	for _, f := range r.File {
+
+		// Store filename/path for returning and using later on
+		fpath := filepath.Join(dest, f.Name)
+
+		// Check for ZipSlip. More Info: http://bit.ly/2MsjAWE
+		if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
+			return fmt.Errorf("%s: illegal file path", fpath)
+		}
+
+		filenames = append(filenames, fpath)
+
+		if f.FileInfo().IsDir() {
+			// Make Folder
+			_ = os.MkdirAll(fpath, os.ModePerm)
+			continue
+		}
+
+		// Make File
+		if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
+			return err
+		}
+
+		outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if err != nil {
+			return err
+		}
+
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(outFile, rc)
+
+		// Close the file without defer to close before next iteration of loop
+		_ = outFile.Close()
+		_ = rc.Close()
+
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
