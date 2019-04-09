@@ -118,7 +118,7 @@ func CopyFileContents(src, dst string) (err error) {
 /**
 Method that unzips a file from the given location to the given destination
 */
-func unzip(src string, dest string) (error) {
+func Unzip(src string, dest string) (error) {
 
 	var filenames []string
 
