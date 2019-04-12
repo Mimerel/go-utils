@@ -157,8 +157,6 @@ func (f *CSVFileStructure) scanFile() (err error) {
 			counter = 0
 		}
 	}
-	f.LoggerInfo("Size of destination array : %v", reflect.ValueOf(f.Output).Elem().Len())
-	f.LoggerInfo("Value of array %v : ", f.destinationStructure)
 
 	if err := scanner.Err(); err != nil {
 		f.LoggerError("Error scanning file")
