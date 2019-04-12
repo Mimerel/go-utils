@@ -38,9 +38,6 @@ func NewCSVFile() *CSVFileStructure {
 	return &CSVFileStructure{}
 }
 
-func defaultLogOutput(message string, args ...interface{}) {
-	fmt.Printf(message, args)
-}
 
 /**
 Initialize values
@@ -49,10 +46,10 @@ func (f *CSVFileStructure) init() (err error) {
 	// init variables
 	f.scannedRowsCount = 0
 	if f.LoggerInfo == nil {
-		f.LoggerInfo = defaultLogOutput
+		f.LoggerInfo = DefaultLogOutput
 	}
 	if f.LoggerError == nil {
-		f.LoggerError = defaultLogOutput
+		f.LoggerError = DefaultLogOutput
 	}
 	return nil
 }
