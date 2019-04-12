@@ -151,7 +151,6 @@ func (f *CSVFileStructure) scanFile() (err error) {
 			return err
 		}
 		if counter >= f.HookEvery {
-			f.LoggerInfo("Running Hook", f.scannedRowsCount)
 			f.Hook(f.Output, f.HookArgs)
 			if f.HookResetOutput {
 				// Reset the output slice to empty
