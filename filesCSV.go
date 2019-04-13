@@ -204,11 +204,6 @@ func (f *CSVFileStructure) getFieldIndex(tagName string) (index int, err error) 
 Spits the row information in cells
 */
 func splitRowValues(row string, seperator string) (parts []string, err error) {
-	show := false
-	if strings.Index(row, "\"") != -1 {
-		show = true
-		fmt.Printf("ROW BEFORE : %s\n", row)
-	}
 	replacementSeperator := "§"
 	row = strings.Replace(row, seperator, replacementSeperator, -1)
 	replaceIt := true
@@ -227,10 +222,6 @@ func splitRowValues(row string, seperator string) (parts []string, err error) {
 	for k, _ := range parts {
 		parts[k] = strings.Replace(parts[k] , replacementSeperator, seperator, -1)
 		parts[k] = strings.Replace(parts[k], "\"", "", -1)
-	}
-	if show{
-		fmt.Printf("ROW After : %s\n", row)
-		fmt.Printf("Parts After : %s\n", parts)
 	}
 	return parts, nil
 }
