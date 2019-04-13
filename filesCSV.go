@@ -223,10 +223,10 @@ func splitRowValues(row string, seperator string) (parts []string, err error) {
 			newRow += string(char)
 		}
 	}
-	row = strings.Replace(row, "\"", "", -1)
 	parts = strings.Split(newRow, seperator)
 	for k, _ := range parts {
 		parts[k] = strings.Replace(parts[k] , replacementSeperator, seperator, -1)
+		parts[k] = strings.Replace(parts[k], "\"", "", -1)
 	}
 	if show{
 		fmt.Printf("ROW After : %s\n", row)
