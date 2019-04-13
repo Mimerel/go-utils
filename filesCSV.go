@@ -206,7 +206,7 @@ Spits the row information in cells
 func splitRowValues(row string, seperator string) (parts []string, err error) {
 	show := false
 	if strings.Index(row, "\"") != -1 {
-		show := true
+		show = true
 		fmt.Printf("ROW BEFORE : %s\n", row)
 	}
 	replacementSeperator := "§"
