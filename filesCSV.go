@@ -16,7 +16,7 @@ type CSVFileStructure struct {
 	ColumnTitle          bool
 	LoggerInfo           func(string, ...interface{})
 	LoggerError          func(string, ...interface{})
-	Hook                 func(...interface{}) (error)
+	Hook                 func(...interface{}) (err error)
 	HookEvery            int
 	HookArgs             interface{}
 	HookResetOutput      bool
@@ -148,7 +148,7 @@ func (f *CSVFileStructure) scanFile() (err error) {
 			return err
 		}
 		if counter >= f.HookEvery {
-			err = f.Hook(f.Output, f.HookArgs)
+			err = f.Hook(f.Output,f.scannedRowsCount, f.HookArgs)
 			if err != nil {
 				return err
 			}
