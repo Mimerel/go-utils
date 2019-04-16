@@ -1,14 +1,15 @@
 package go_utils
 
 import (
-	"strings"
-	"time"
 	"crypto/tls"
+	"fmt"
+	"github.com/op/go-logging"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"github.com/op/go-logging"
+	"strings"
+	"time"
 )
 
 type HttpRequestParams struct {
@@ -22,6 +23,7 @@ type HttpRequestParams struct {
 	Retry int
 	LogPrefix string
 	DelayBetweenRetry time.Duration
+	Debug bool
 }
 
 
@@ -37,6 +39,10 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 		if err != nil {
 			log.Errorf(requestParams.LogPrefix + "Unable to parse URL / Url format incorrect %+v", err)
 			return err, nil
+		}
+
+		if requestParams.Debug {
+			log.Debug("Parsed url : %v", target)
 		}
 
 		var body io.Reader
@@ -81,17 +87,28 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 		
 		log.Debugf(requestParams.LogPrefix+"Request run in insecure mode ? %t", insecure)
 		httpClient = http.Client{Timeout: timeout, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: insecure}}}
+
+		if requestParams.Debug {
+			log.Debug("Request : %v",request)
+		}
+
 		response, err = httpClient.Do(request)
 		if err != nil || response.StatusCode > 299 {
+			if requestParams.Debug {
+				log.Debug("Response : %v",response)
+			}
 			requestParams.Retry -= 1
 			log.Errorf(requestParams.LogPrefix + "Unable to execute Request %d reties left, %+v", requestParams.Retry, err)
 			if requestParams.Retry == 0 {
-				return err, response
+				return fmt.Errorf("Too Many retires -> failed"), response
 			} else {
 				time.Sleep(requestParams.DelayBetweenRetry * time.Second)
 			}
 		} else {
 			requestParams.Retry = 0
+			if requestParams.Debug {
+				log.Debug("Response : %v",response)
+			}
 		}
 	}
 	return nil, response
@@ -108,3 +125,4 @@ func HttpReadResponse(response *http.Response) (err error, body []byte) {
 	// log.Debugf("Response : %+v", string(body))
 	return nil, body
 }
+
