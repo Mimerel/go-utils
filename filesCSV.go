@@ -233,6 +233,10 @@ Method that extracts the data for a Row, stores it in a structure and appends th
 */
 func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []string, seperator string) (err error) {
 	titleDB := []StructureMatchWithCSV{}
+	fmt.Printf("reflect.TypeOf(output): %v\n", reflect.TypeOf(output))
+	fmt.Printf("reflect.TypeOf(output).Elem(): %v\n", reflect.TypeOf(output).Elem())
+	fmt.Printf("reflect.TypeOf(output).Elem().Elem(): %v\n", reflect.TypeOf(output).Elem().Elem())
+
 	elements := reflect.TypeOf(output).Elem().Elem()
 	destinationStructure := reflect.New(elements).Elem()
 	for i := 0; i < destinationStructure.NumField(); i++ {
@@ -242,13 +246,16 @@ func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []str
 			StructureTitle: destinationStructure.Type().Field(i).Name,
 		})
 	}
+	fmt.Printf("titles: %v\n", titleDB)
+	fmt.Printf("reflect.New(elements).Elem(): %v\n", reflect.New(elements).Elem())
+	fmt.Printf("reflect.New(elements): %v\n", reflect.New(elements))
 	fmt.Printf("starting row analysis\n")
 	for _, row := range rows {
 		parts, err := splitRowValues(row, seperator)
 		if err != nil {
 			return err
 		}
-		dbase := reflect.ValueOf(output)
+		dbase := reflect.ValueOf(output).Elem()
 		for index, val := range parts {
 			destinationStructure.Field(index).SetString(val)
 		}
