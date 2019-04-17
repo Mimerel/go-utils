@@ -16,8 +16,6 @@ func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []str
 
 	titleDB, err := extractNamesAndTagsFromStructure(destinationStructure)
 
-	fmt.Printf("starting row analysis\n")
-
 	for _, row := range rows {
 
 		parts, err := splitRowValues(row, seperator)
@@ -60,8 +58,6 @@ func extractNamesAndTagsFromStructure(destinationStructure reflect.Value) (data 
 			StructureTitle: destinationStructure.Type().Field(i).Name,
 		})
 	}
-	fmt.Printf("titles: %v\n", data)
-
 
 	return data,nil
 }
