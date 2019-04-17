@@ -34,7 +34,6 @@ func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []str
 		}
 		dbase.Set(reflect.Append(dbase, destinationStructure))
 	}
-
 	return nil
 }
 
@@ -42,11 +41,13 @@ func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []str
 Searches for the struct field corresponding to the csv column title
 */
 func getFieldIndex(tagName string, titleDB []StructureMatchWithCSV) (index int, err error) {
+
 	for _, v := range titleDB {
 		if v.CSVTitle == tagName {
 			return v.Index, nil
 		}
 	}
+	fmt.Printf("looking for field %s\n", tagName)
 	return index, fmt.Errorf("Unable to find corresponding field")
 }
 
