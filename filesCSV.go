@@ -242,6 +242,7 @@ func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []str
 			StructureTitle: destinationStructure.Type().Field(i).Name,
 		})
 	}
+	fmt.Printf("starting row analysis\n")
 	for _, row := range rows {
 		parts, err := splitRowValues(row, seperator)
 		if err != nil {
