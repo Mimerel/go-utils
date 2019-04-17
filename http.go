@@ -100,7 +100,7 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 			requestParams.Retry -= 1
 			log.Errorf(requestParams.LogPrefix + "Unable to execute Request %d reties left, %+v", requestParams.Retry, err)
 			if requestParams.Retry == 0 {
-				return fmt.Errorf("Too Many retires -> failed"), response
+				return fmt.Errorf("Too Many retires -> failed : %v", err), response
 			} else {
 				time.Sleep(requestParams.DelayBetweenRetry * time.Second)
 			}

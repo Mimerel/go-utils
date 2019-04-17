@@ -38,7 +38,6 @@ func NewCSVFile() *CSVFileStructure {
 	return &CSVFileStructure{}
 }
 
-
 /**
 Initialize values
 */
@@ -148,7 +147,7 @@ func (f *CSVFileStructure) scanFile() (err error) {
 			return err
 		}
 		if counter >= f.HookEvery {
-			err = f.Hook(f.Output,f.scannedRowsCount, f.HookArgs)
+			err = f.Hook(f.Output, f.scannedRowsCount, f.HookArgs)
 			if err != nil {
 				return err
 			}
@@ -223,8 +222,37 @@ func splitRowValues(row string, seperator string) (parts []string, err error) {
 	}
 	parts = strings.Split(newRow, seperator)
 	for k, _ := range parts {
-		parts[k] = strings.Replace(parts[k] , replacementSeperator, seperator, -1)
+		parts[k] = strings.Replace(parts[k], replacementSeperator, seperator, -1)
 		parts[k] = strings.Replace(parts[k], "\"", "", -1)
 	}
 	return parts, nil
+}
+
+/**
+Method that extracts the data for a Row, stores it in a structure and appends the output array
+*/
+func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []string, seperator string) (err error) {
+	titleDB := []StructureMatchWithCSV{}
+	elements := reflect.TypeOf(output).Elem().Elem()
+	destinationStructure := reflect.New(elements).Elem()
+	for i := 0; i < destinationStructure.NumField(); i++ {
+		titleDB = append(titleDB, StructureMatchWithCSV{
+			Index:          i,
+			CSVTitle:       destinationStructure.Type().Field(i).Tag.Get("csv"),
+			StructureTitle: destinationStructure.Type().Field(i).Name,
+		})
+	}
+	for _, row := range rows {
+		parts, err := splitRowValues(row, seperator)
+		if err != nil {
+			return err
+		}
+		dbase := reflect.ValueOf(output).Elem()
+		for index, val := range parts {
+			destinationStructure.Field(index).SetString(val)
+		}
+		dbase.Set(reflect.Append(dbase, destinationStructure))
+	}
+
+	return nil
 }
