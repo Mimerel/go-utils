@@ -3,8 +3,8 @@ package go_utils
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 )
-
 
 /**
 Method that extracts the data for a Row, stores it in a structure and appends the output array
@@ -28,7 +28,24 @@ func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []str
 			if err != nil {
 				return err
 			}
-			destinationStructure.Field(index).SetString(val)
+			switch destinationStructure.Field(index).Kind() {
+			case reflect.String:
+				destinationStructure.Field(index).SetString(val)
+			case reflect.Int64:
+				valInt, err := strconv.ParseInt(val, 10, 64)
+				if err != nil {
+					return err
+				}
+				destinationStructure.Field(index).SetInt(valInt)
+			case reflect.Bool:
+				valBool, err := strconv.ParseBool(val)
+				if err != nil {
+					return err
+				}
+				destinationStructure.Field(index).SetBool(valBool)
+			default:
+				destinationStructure.Field(index).SetString(val)
+			}
 		}
 		dbase.Set(reflect.Append(dbase, destinationStructure))
 	}
@@ -49,7 +66,6 @@ func getFieldIndex(tagName string, titleDB []StructureMatchWithCSV) (index int, 
 	return index, fmt.Errorf("Unable to find corresponding field")
 }
 
-
 func extractNamesAndTagsFromStructure(destinationStructure reflect.Value) (data []StructureMatchWithCSV, err error) {
 	for i := 0; i < destinationStructure.NumField(); i++ {
 		data = append(data, StructureMatchWithCSV{
@@ -59,5 +75,5 @@ func extractNamesAndTagsFromStructure(destinationStructure reflect.Value) (data 
 		})
 	}
 
-	return data,nil
+	return data, nil
 }
