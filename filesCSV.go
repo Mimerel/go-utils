@@ -248,7 +248,7 @@ func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []str
 		if err != nil {
 			return err
 		}
-		dbase := reflect.ValueOf(output).Elem()
+		dbase := reflect.ValueOf(output)
 		for index, val := range parts {
 			destinationStructure.Field(index).SetString(val)
 		}
