@@ -6,7 +6,7 @@ import "strings"
 Spits the row information in cells
 */
 func splitRowValues(row string, seperator string) (parts []string, err error) {
-	replacementSeperator := "§"
+	replacementSeperator := "§§§"
 	row = strings.Replace(row, seperator, replacementSeperator, -1)
 	replaceIt := true
 	newRow := ""

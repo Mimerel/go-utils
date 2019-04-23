@@ -176,7 +176,7 @@ func (f *CSVFileStructure) extractDataFromRow() (err error) {
 	dbase := reflect.ValueOf(f.Output).Elem()
 	for k, val := range parts {
 		if k >= len(f.TitleDB) {
-			return fmt.Errorf("More parts than columns in table/n cols: %/n row: %s\n", f.TitleDB, f.scannedRowDetails)
+			return fmt.Errorf("More parts than columns in table/n cols: %v row: %v parts: %v", f.TitleDB, f.scannedRowDetails, parts)
 		}
 		index, err := f.getFieldIndex(f.Titles[k])
 		if err != nil {
