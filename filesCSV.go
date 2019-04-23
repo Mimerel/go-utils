@@ -26,6 +26,7 @@ type CSVFileStructure struct {
 	scannedRowDetails    string
 	destinationStructure reflect.Value
 	TitleDB              []StructureMatchWithCSV
+	Debug                bool
 }
 
 type StructureMatchWithCSV struct {
@@ -49,6 +50,9 @@ func (f *CSVFileStructure) init() (err error) {
 	}
 	if f.LoggerError == nil {
 		f.LoggerError = DefaultLogOutput
+	}
+	if f.Separator == "" {
+		f.Separator = ";"
 	}
 	return nil
 }
@@ -173,6 +177,10 @@ Method that extracts the data for a Row, stores it in a structure and appends th
 func (f *CSVFileStructure) extractDataFromRow() (err error) {
 
 	parts, err := splitRowValues(f.scannedRowDetails, f.Separator)
+	if f.Debug {
+		f.LoggerInfo("Rows : %s", f.scannedRowDetails)
+		f.LoggerInfo("parts : %v", parts)
+	}
 	dbase := reflect.ValueOf(f.Output).Elem()
 	for k, val := range parts {
 		if k >= len(f.TitleDB) {
