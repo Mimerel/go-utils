@@ -9,7 +9,7 @@ import (
 /**
 Method that extracts the data for a Row, stores it in a structure and appends the output array
 */
-func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []string, seperator string) (err error) {
+func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []string, seperator string, debug bool) (err error) {
 
 	elements := reflect.TypeOf(output).Elem().Elem()
 	destinationStructure := reflect.New(elements).Elem()
@@ -18,7 +18,7 @@ func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []str
 
 	for _, row := range rows {
 
-		parts, err := splitRowValues(row, seperator)
+		parts, err := splitRowValues(row, seperator, debug)
 		if err != nil {
 			return err
 		}
