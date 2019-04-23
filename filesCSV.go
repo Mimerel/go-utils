@@ -176,7 +176,7 @@ Method that extracts the data for a Row, stores it in a structure and appends th
 */
 func (f *CSVFileStructure) extractDataFromRow() (err error) {
 
-	parts, err := splitRowValues(f.scannedRowDetails, f.Separator)
+	parts, err := splitRowValues(f.scannedRowDetails, f.Separator, f.Debug)
 	if f.Debug {
 		f.LoggerInfo("Rows : %s", f.scannedRowDetails)
 		f.LoggerInfo("parts : %v", parts)
