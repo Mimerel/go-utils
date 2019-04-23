@@ -9,7 +9,7 @@ import (
 Spits the row information in cells
 */
 func splitRowValues(row string, seperator string, debug bool) (parts []string, err error) {
-	replacementSeperator := "§§§"
+	replacementSeperator := "π"
 	if debug {
 		fmt.Printf("row before: %s\n", row)
 	}
