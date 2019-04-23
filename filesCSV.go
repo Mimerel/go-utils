@@ -175,13 +175,16 @@ func (f *CSVFileStructure) extractDataFromRow() (err error) {
 	parts, err := splitRowValues(f.scannedRowDetails, f.Separator)
 	dbase := reflect.ValueOf(f.Output).Elem()
 	for k, val := range parts {
+		if k >= len(f.TitleDB) {
+			return fmt.Errorf("More parts than columns in table/n cols: %/n row: %s\n", f.TitleDB, f.scannedRowDetails)
+		}
 		index, err := f.getFieldIndex(f.Titles[k])
 		if err != nil {
 			return err
 		}
 
 		if index >= len(f.TitleDB) {
-			f.LoggerError("Index out of range %v\n, for record %v", index, parts)
+			return fmt.Errorf("Index out of range %v\n, for record %v", index, parts)
 		}
 		f.destinationStructure.Field(index).SetString(val)
 	}
