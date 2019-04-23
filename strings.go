@@ -11,7 +11,7 @@ Spits the row information in cells
 func splitRowValues(row string, seperator string, debug bool) (parts []string, err error) {
 	replacementSeperator := "§§§"
 	if debug {
-		fmt.Printf("row before: %s", row)
+		fmt.Printf("row before: %s\n", row)
 	}
 	row = strings.Replace(row, seperator, replacementSeperator, -1)
 	replaceIt := true
@@ -28,18 +28,18 @@ func splitRowValues(row string, seperator string, debug bool) (parts []string, e
 	}
 
 	if debug {
-		fmt.Printf("row before split: %s", row)
+		fmt.Printf("row before split: %s\n", newRow)
 	}
 	parts = strings.Split(newRow, seperator)
 	if debug {
-		fmt.Printf("Parts before: %v", parts)
+		fmt.Printf("Parts before: %v\n", parts)
 	}
 	for k, _ := range parts {
 		parts[k] = strings.Replace(parts[k], replacementSeperator, seperator, -1)
 		parts[k] = strings.Replace(parts[k], "\"", "", -1)
 	}
 	if debug {
-		fmt.Printf("Parts after: %v", parts)
+		fmt.Printf("Parts after: %v\n", parts)
 	}
 	return parts, nil
 }
