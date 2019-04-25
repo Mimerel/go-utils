@@ -12,15 +12,15 @@ Structure that groups the main data required to do the extraction to Structure
 Rows = rows received from mysql
 cols = name of columns from mysql
 seperator = seperator used by mysql
- */
+*/
 type ExtractDataOptions struct {
-	Rows []string
-	Cols []string
-	Seperator string
-	Debug bool
+	Rows               []string
+	Cols               []string
+	Seperator          string
+	Debug              bool
 	RemoveDoubleSpaces bool
-	RemoveEndSpace bool
-	RemoveStartSpace bool
+	RemoveEndSpace     bool
+	RemoveStartSpace   bool
 }
 
 /**
@@ -35,7 +35,7 @@ func ExtractDataFromRowToStructure(output interface{}, params ExtractDataOptions
 	if params.Debug {
 		fmt.Printf("Title dbase\n")
 		fmt.Printf("----\n")
-		for _,v := range titleDB {
+		for _, v := range titleDB {
 			fmt.Printf("Index: %v\n", v.Index)
 			fmt.Printf("csv Title: %v\n", v.CSVTitle)
 			fmt.Printf("str Title: %v\n", v.StructureTitle)
@@ -111,7 +111,9 @@ func extractNamesAndTagsFromStructure(destinationStructure reflect.Value) (data 
 func transforedString(params ExtractDataOptions, value string) (result string) {
 	result = value
 	if params.RemoveDoubleSpaces {
-		result = strings.Replace(result, "  ", " ", -1)
+		for strings.Index(result, "  ") != -1 {
+			result = strings.Replace(result, "  ", " ", -1)
+		}
 	}
 	if params.RemoveStartSpace {
 		result = strings.TrimLeft(result, " ")
