@@ -15,7 +15,16 @@ func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []str
 	destinationStructure := reflect.New(elements).Elem()
 
 	titleDB, err := extractNamesAndTagsFromStructure(destinationStructure)
-
+	if debug {
+		fmt.Printf("Title dbase")
+		fmt.Printf("----")
+		for _,v := range titleDB {
+			fmt.Printf("Index: %v", v.Index)
+			fmt.Printf("csv Title: %v", v.CSVTitle)
+			fmt.Printf("str Title: %v", v.StructureTitle)
+			fmt.Printf("----")
+		}
+	}
 	for _, row := range rows {
 
 		parts, err := splitRowValues(row, seperator, debug)
