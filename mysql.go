@@ -4,18 +4,35 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 )
+
+/**
+Structure that groups the main data required to do the extraction to Structure
+Rows = rows received from mysql
+cols = name of columns from mysql
+seperator = seperator used by mysql
+ */
+type ExtractDataOptions struct {
+	Rows []string
+	Cols []string
+	Seperator string
+	Debug bool
+	RemoveDoubleSpaces bool
+	RemoveEndSpace bool
+	RemoveStartSpace bool
+}
 
 /**
 Method that extracts the data for a Row, stores it in a structure and appends the output array
 */
-func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []string, seperator string, debug bool) (err error) {
+func ExtractDataFromRowToStructure(output interface{}, params ExtractDataOptions) (err error) {
 
 	elements := reflect.TypeOf(output).Elem().Elem()
 	destinationStructure := reflect.New(elements).Elem()
 
 	titleDB, err := extractNamesAndTagsFromStructure(destinationStructure)
-	if debug {
+	if params.Debug {
 		fmt.Printf("Title dbase\n")
 		fmt.Printf("----\n")
 		for _,v := range titleDB {
@@ -25,15 +42,15 @@ func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []str
 			fmt.Printf("----")
 		}
 	}
-	for _, row := range rows {
+	for _, row := range params.Rows {
 
-		parts, err := splitRowValues(row, seperator, debug)
+		parts, err := splitRowValues(row, params.Seperator, params.Debug)
 		if err != nil {
 			return err
 		}
 		dbase := reflect.ValueOf(output).Elem()
 		for k, val := range parts {
-			index, err := getFieldIndex(cols[k], titleDB)
+			index, err := getFieldIndex(params.Cols[k], titleDB)
 			if err != nil {
 				return err
 			}
@@ -46,6 +63,12 @@ func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []str
 					return err
 				}
 				destinationStructure.Field(index).SetInt(valInt)
+			case reflect.Int:
+				valInt, err := strconv.Atoi(val)
+				if err != nil {
+					return err
+				}
+				destinationStructure.Field(index).SetCap(valInt)
 			case reflect.Bool:
 				valBool, err := strconv.ParseBool(val)
 				if err != nil {
@@ -53,7 +76,7 @@ func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []str
 				}
 				destinationStructure.Field(index).SetBool(valBool)
 			default:
-				destinationStructure.Field(index).SetString(val)
+				destinationStructure.Field(index).SetString(transforedString(params, val))
 			}
 		}
 		dbase.Set(reflect.Append(dbase, destinationStructure))
@@ -84,4 +107,17 @@ func extractNamesAndTagsFromStructure(destinationStructure reflect.Value) (data 
 	}
 
 	return data, nil
+}
+func transforedString(params ExtractDataOptions, value string) (result string) {
+	result = value
+	if params.RemoveDoubleSpaces {
+		result = strings.Replace(result, "  ", " ", -1)
+	}
+	if params.RemoveStartSpace {
+		result = strings.TrimLeft(result, " ")
+	}
+	if params.RemoveEndSpace {
+		result = strings.TrimRight(result, " ")
+	}
+	return result
 }
