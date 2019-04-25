@@ -16,12 +16,12 @@ func ExtractDataFromRowToStructure(output interface{}, rows []string, cols []str
 
 	titleDB, err := extractNamesAndTagsFromStructure(destinationStructure)
 	if debug {
-		fmt.Printf("Title dbase")
-		fmt.Printf("----")
+		fmt.Printf("Title dbase\n")
+		fmt.Printf("----\n")
 		for _,v := range titleDB {
-			fmt.Printf("Index: %v", v.Index)
-			fmt.Printf("csv Title: %v", v.CSVTitle)
-			fmt.Printf("str Title: %v", v.StructureTitle)
+			fmt.Printf("Index: %v\n", v.Index)
+			fmt.Printf("csv Title: %v\n", v.CSVTitle)
+			fmt.Printf("str Title: %v\n", v.StructureTitle)
 			fmt.Printf("----")
 		}
 	}
@@ -77,6 +77,7 @@ func getFieldIndex(tagName string, titleDB []StructureMatchWithCSV) (index int, 
 
 func extractNamesAndTagsFromStructure(destinationStructure reflect.Value) (data []StructureMatchWithCSV, err error) {
 	for i := 0; i < destinationStructure.NumField(); i++ {
+		fmt.Printf("tags : %v\n", destinationStructure.Type().Field(i).Tag,)
 		data = append(data, StructureMatchWithCSV{
 			Index:          i,
 			CSVTitle:       destinationStructure.Type().Field(i).Tag.Get("csv"),
