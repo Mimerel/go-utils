@@ -56,7 +56,7 @@ func ExtractDataFromRowToStructure(output interface{}, params ExtractDataOptions
 			}
 			switch destinationStructure.Field(index).Kind() {
 			case reflect.String:
-				destinationStructure.Field(index).SetString(val)
+				destinationStructure.Field(index).SetString(transforedString(params, val))
 			case reflect.Int64:
 				valInt, err := strconv.ParseInt(val, 10, 64)
 				if err != nil {
