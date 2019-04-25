@@ -113,6 +113,7 @@ func transforedString(params ExtractDataOptions, value string) (result string) {
 	if params.RemoveDoubleSpaces {
 		for strings.Index(result, "  ") != -1 {
 			result = strings.Replace(result, "  ", " ", -1)
+			fmt.Printf("value : %s", strings.Replace(result, " ", "€", -1))
 		}
 	}
 	if params.RemoveStartSpace {
