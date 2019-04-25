@@ -71,13 +71,11 @@ func getFieldIndex(tagName string, titleDB []StructureMatchWithCSV) (index int, 
 			return v.Index, nil
 		}
 	}
-	fmt.Printf("looking for field %s\n", tagName)
-	return index, fmt.Errorf("Unable to find corresponding field")
+	return index, fmt.Errorf("Unable to find corresponding field %s\n", tagName)
 }
 
 func extractNamesAndTagsFromStructure(destinationStructure reflect.Value) (data []StructureMatchWithCSV, err error) {
 	for i := 0; i < destinationStructure.NumField(); i++ {
-		fmt.Printf("tags : %v\n", destinationStructure.Type().Field(i).Tag,)
 		data = append(data, StructureMatchWithCSV{
 			Index:          i,
 			CSVTitle:       destinationStructure.Type().Field(i).Tag.Get("csv"),
