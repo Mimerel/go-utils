@@ -27,7 +27,12 @@ type ExtractDataOptions struct {
 Method that extracts the data for a Row, stores it in a structure and appends the output array
 */
 func ExtractDataFromRowToStructure(output interface{}, params ExtractDataOptions) (err error) {
-
+	if params.Debug {
+		fmt.Printf("reflect.TypeOf(output): %v\n", reflect.TypeOf(output))
+		fmt.Printf("reflect.TypeOf(output).Elem(): %v\n", reflect.TypeOf(output).Elem())
+		fmt.Printf("reflect.TypeOf(output).Elem().Elem(): %v\n", reflect.TypeOf(output).Elem().Elem())
+	}
+	
 	elements := reflect.TypeOf(output).Elem().Elem()
 	destinationStructure := reflect.New(elements).Elem()
 
