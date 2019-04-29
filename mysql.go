@@ -1,6 +1,7 @@
 package go_utils
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -130,4 +131,304 @@ func transforedString(params ExtractDataOptions, value string) (result string) {
 		result = strings.TrimRight(result, " ")
 	}
 	return result
+}
+
+
+
+type MariaDBConfiguration struct {
+	LoggerInfo  func(string, ...interface{})
+	LoggerError func(string, ...interface{})
+	User        string
+	Password    string
+	Database    string
+	IP          string
+	Port        string
+	DB          *sql.DB
+	Seperator   string
+	WhereClause string
+	Table       string
+	DataType    interface{}
+}
+
+type StructureDetails struct {
+	Index     int
+	FieldTag  string
+	FieldName string
+}
+
+type SelectResponse struct {
+	Columns   []string
+	Rows      []string
+	Seperator string
+}
+
+func NewMariaDB() *MariaDBConfiguration {
+	return &MariaDBConfiguration{}
+}
+
+const (
+	Low_Priority = "LOW_PRIORITY"
+	Normal       = ""
+)
+
+/**
+Initialize values
+*/
+func (c *MariaDBConfiguration) init() (err error) {
+	// init variables
+	if c.IP == "" {
+		c.IP = "localhost"
+	}
+	if c.LoggerInfo == nil {
+		c.LoggerInfo = go_utils.DefaultLogOutput
+	}
+	if c.LoggerError == nil {
+		c.LoggerError = go_utils.DefaultLogOutput
+	}
+	if c.Seperator == "" {
+		c.Seperator = ";"
+	}
+	return nil
+}
+
+func (c *MariaDBConfiguration) connectMariaDb() (err error) {
+	c.init()
+	c.DB, err = sql.Open("mysql", c.User+":"+c.Password+"@tcp("+c.IP+":"+c.Port+")/"+c.Database)
+	if err != nil {
+		c.LoggerError("Unable to create connexion to MariaDb")
+		return err
+	}
+
+	return nil
+}
+
+func (c *MariaDBConfiguration) DecryptStructureAndData(data interface{}) (columns string, values string, err error) {
+
+	var valuesBuilder strings.Builder
+	var columnsBuilder strings.Builder
+	titleDB := []StructureDetails{}
+
+	// Analysing Structure details
+	elements := reflect.TypeOf(data).Elem()
+	structureModel := reflect.New(elements).Elem()
+
+	for i := 0; i < structureModel.NumField(); i++ {
+		titleDB = append(titleDB, StructureDetails{
+			Index:     i,
+			FieldTag:  structureModel.Type().Field(i).Tag.Get("csv"),
+			FieldName: structureModel.Type().Field(i).Name,
+		})
+	}
+
+	_, _ = fmt.Fprintf(&columnsBuilder, "%s", "(")
+	for k, v := range titleDB {
+		if k != 0 {
+			_, _ = fmt.Fprintf(&columnsBuilder, "%s", ",")
+		}
+		_, _ = fmt.Fprintf(&columnsBuilder, "`%s`", v.FieldTag)
+	}
+	_, _ = fmt.Fprintf(&columnsBuilder, "%s", ")")
+
+	columns = columnsBuilder.String()
+
+	switch reflect.TypeOf(data).Kind() {
+	case reflect.Slice:
+		v := reflect.ValueOf(data)
+		for i := 0; i < v.Len(); i++ {
+			var subValuesBuilder strings.Builder
+			if i != 0 {
+				_, _ = fmt.Fprintf(&valuesBuilder, "%s", ",")
+			}
+			_, _ = fmt.Fprintf(&subValuesBuilder, "%s", "(")
+			for k1, v1 := range titleDB {
+				// Finding correct name of column corresponding to field
+				if k1 != 0 {
+					_, _ = fmt.Fprintf(&subValuesBuilder, "%s", ",")
+				}
+				// Change output depending on type of field to import
+				switch v.Index(i).Field(v1.Index).Kind() {
+				case reflect.String:
+					valueString := strings.Replace(v.Index(i).Field(v1.Index).String(), "\\", "", -1)
+					valueString = strings.Replace(valueString, "\"", "", -1)
+					_, _ = fmt.Fprintf(&subValuesBuilder, "%s%s%s", "\"", valueString, "\"")
+				case reflect.Int64:
+					_, _ = fmt.Fprintf(&subValuesBuilder, "%s", strconv.FormatInt(v.Index(i).Field(v1.Index).Int(), 10))
+				case reflect.Bool:
+					_, _ = fmt.Fprintf(&subValuesBuilder, "%s", strconv.FormatBool(v.Index(i).Field(v1.Index).Bool()))
+				default:
+					_, _ = fmt.Fprintf(&subValuesBuilder, "%s", v.Index(i).Field(v1.Index).String())
+				}
+
+			}
+			_, _ = fmt.Fprintf(&subValuesBuilder, "%s", ")")
+			_, _ = fmt.Fprintf(&valuesBuilder, "%s", subValuesBuilder.String())
+		}
+
+	}
+	values = valuesBuilder.String()
+	return columns, values, nil
+}
+
+func (c *MariaDBConfiguration) Replace(priority string, table string, col string, val string) (err error) {
+	err = c.connectMariaDb()
+	if err != nil {
+		c.LoggerError("Unable to connect to database")
+		return err
+	}
+	defer c.DB.Close()
+	request, err := c.DB.Prepare("REPLACE " + priority + " INTO " + table + " " + col + " VALUES " + val)
+	if err != nil {
+		c.LoggerError("Unable to prepare Replace request")
+		return err
+	}
+
+	_, err = request.Exec()
+	if err != nil {
+		c.LoggerError("Unable to execure Replace request")
+		return err
+	}
+
+	return nil
+}
+
+func (c *MariaDBConfiguration) Insert(ignore bool, table string, col string, val string) (err error) {
+	err = c.connectMariaDb()
+	if err != nil {
+		c.LoggerError("Unable to connect to database")
+		return err
+	}
+	defer c.DB.Close()
+	var ignoreValue = ""
+	if ignore {
+		ignoreValue = "IGNORE"
+	}
+	request, err := c.DB.Prepare("INSERT " + ignoreValue + " INTO " + table + " " + col + " VALUES " + val)
+	if err != nil {
+		c.LoggerError("Unable to prepare insert request")
+		return err
+	}
+
+	_, err = request.Exec()
+	if err != nil {
+		c.LoggerError("Unable to execure insert request")
+		return err
+	}
+
+	return nil
+}
+
+func (c *MariaDBConfiguration) Request(requestString string) (err error) {
+	err = c.connectMariaDb()
+	if err != nil {
+		c.LoggerError("Unable to connect to database")
+		return err
+	}
+	defer c.DB.Close()
+
+	request, err := c.DB.Prepare(requestString)
+	if err != nil {
+		c.LoggerError("Unable to prepare request with string %s", requestString)
+		return err
+	}
+
+	_, err = request.Exec()
+	if err != nil {
+		c.LoggerError("Unable to execure request")
+		return err
+	}
+
+	return nil
+}
+
+func (c *MariaDBConfiguration) Select(requestString string) (response SelectResponse, err error) {
+	err = c.connectMariaDb()
+	if err != nil {
+		c.LoggerError("Unable to connect to database")
+		return response, err
+	}
+	defer c.DB.Close()
+
+	// Execute the query
+	rows, err := c.DB.Query(requestString)
+	if err != nil {
+		c.LoggerError("Failed to run Query : %+v", err)
+		return response, err
+	}
+
+	// Get column names
+	response.Columns, err = rows.Columns()
+	if err != nil {
+		c.LoggerError("Failed to get columns : %+v", err)
+		return response, err
+	}
+
+	// Make a slice for the values
+	values := make([]sql.RawBytes, len(response.Columns))
+	scanArgs := make([]interface{}, len(values))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	response.Seperator = c.Seperator
+	// Fetch rows
+	for rows.Next() {
+		// get RawBytes from data
+		err = rows.Scan(scanArgs...)
+		if err != nil {
+			c.LoggerError("Failed to get row : %+v", err)
+			return response, err
+		}
+		var rowBuilder strings.Builder
+		for i, col := range values {
+			// Here we can check if the value is nil (NULL value)
+			if i != 0 {
+				_, _ = fmt.Fprintf(&rowBuilder, "%s", c.Seperator)
+			}
+			if col == nil {
+				_, _ = fmt.Fprintf(&rowBuilder, "%s", "")
+			} else {
+				_, _ = fmt.Fprintf(&rowBuilder, "%s", string(col))
+			}
+		}
+		response.Rows = append(response.Rows, rowBuilder.String())
+	}
+	if err = rows.Err(); err != nil {
+		c.LoggerError("Failed to run Query : %+v", err)
+		return response, err
+	}
+
+	return response, nil
+}
+
+func SearchInTable(c *MariaDBConfiguration) (data interface{}, err error) {
+	err = c.connectMariaDb()
+	if err != nil {
+		c.LoggerError("Unable to connect to database")
+		return data, err
+	}
+	defer c.DB.Close()
+	request := "SELECT * FROM " + c.Table + " WHERE " + c.WhereClause
+	c.LoggerInfo("Sending request to database %s", request)
+	resp, err := c.Select(request)
+	if err != nil {
+		c.LoggerError("Unable to launch select request : %v", err)
+		return data, err
+	}
+	c.LoggerInfo("Extracting data from response")
+	params := new(ExtractDataOptions)
+	params.Rows = resp.Rows
+	params.Cols = resp.Columns
+	params.Seperator = resp.Seperator
+	params.Debug = false
+	params.RemoveEndSpace = true
+	params.RemoveStartSpace = true
+	params.RemoveDoubleSpaces = true
+	err = ExtractDataFromRowToStructure(c.DataType, *params)
+	if err != nil {
+		c.LoggerError("Unable to deserialize response : %v", err)
+		return data, err
+	}
+
+	c.LoggerInfo("Extracting ended of data from response")
+	return c.DataType, nil
 }
