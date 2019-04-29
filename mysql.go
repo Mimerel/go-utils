@@ -180,10 +180,10 @@ func (c *MariaDBConfiguration) init() (err error) {
 		c.IP = "localhost"
 	}
 	if c.LoggerInfo == nil {
-		c.LoggerInfo = go_utils.DefaultLogOutput
+		c.LoggerInfo = DefaultLogOutput
 	}
 	if c.LoggerError == nil {
-		c.LoggerError = go_utils.DefaultLogOutput
+		c.LoggerError = DefaultLogOutput
 	}
 	if c.Seperator == "" {
 		c.Seperator = ";"
