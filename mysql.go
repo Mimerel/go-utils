@@ -75,6 +75,9 @@ func ExtractDataFromRowToStructure(output interface{}, params ExtractDataOptions
 				}
 				destinationStructure.Field(index).SetCap(valInt)
 			case reflect.Bool:
+				if val == "" {
+					val = "False"
+				}
 				valBool, err := strconv.ParseBool(val)
 				if err != nil {
 					return err
