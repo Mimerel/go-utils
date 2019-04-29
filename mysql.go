@@ -2,6 +2,7 @@ package go_utils
 
 import (
 	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 	"fmt"
 	"reflect"
 	"strconv"
