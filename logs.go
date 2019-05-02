@@ -34,14 +34,14 @@ func (l LogParams) Info(message string, args ...interface{}) {
 }
 
 func (l LogParams) Debug(message string, args ...interface{}) {
-	if l.level >= 0 {
+	if l.level >= 2 {
 		computedMessage := fmt.Sprintf(message, args...)
 		fmt.Printf(time.Now().Format(time.RFC3339)+" - Debug : %s \n", computedMessage)
 	}
 }
 
 func (l LogParams) Error(message string, args ...interface{}) {
-	if l.level >= 2 {
+	if l.level >= 0 {
 		computedMessage := fmt.Sprintf(message, args...)
 		fmt.Printf(time.Now().Format(time.RFC3339)+" - Error : %s \n", computedMessage)
 	}
