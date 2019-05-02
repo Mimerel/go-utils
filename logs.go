@@ -8,9 +8,9 @@ import (
 type LogLevel int
 
 const (
-	Debug LogLevel = 0
+	Debug LogLevel = 2
 	Info  LogLevel = 1
-	Error LogLevel = 2
+	Error LogLevel = 0
 )
 
 func DefaultLogOutput(message string, args ...interface{}) {
