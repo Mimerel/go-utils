@@ -21,7 +21,7 @@ type LogParams struct {
 	level LogLevel
 }
 
-func New(level LogLevel) LogParams {
+func NewLogger(level LogLevel) LogParams {
 	l := LogParams{level: level}
 	return l
 }
