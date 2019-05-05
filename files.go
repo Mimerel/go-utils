@@ -86,6 +86,7 @@ func (params *ScanParams) ScanFolder() {
 				newFile.Name = strings.Replace(newFile.FullName, newFile.Extension, "", 1)
 				newFile.Size = f.Size()
 				params.Result.Files = append(params.Result.Files, newFile)
+				fmt.Printf("data : %v\n", newFile)
 			}
 		}
 		return nil
