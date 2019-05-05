@@ -29,11 +29,11 @@ type Result struct {
 }
 
 type Files struct {
-	Name      string
 	FullName  string
-	FullPath  string
-	Path      string
+	Name      string
 	Extension string
+	Path      string
+	FullPath  string
 	Size      int64
 }
 
@@ -80,7 +80,7 @@ func (params *ScanParams) ScanFolder() {
 				newFile := new(Files)
 				newFile.FullName = f.Name()
 				newFile.FullPath = path
-				newFile.Path = strings.Replace(newFile.FullPath, newFile.Name, "", 1)
+				newFile.Path = strings.Replace(newFile.FullPath, newFile.FullName, "", 1)
 				tempSplit := strings.Split(newFile.FullName, ".")
 				newFile.Extension = "." + tempSplit[len(tempSplit)-1]
 				newFile.Name = strings.Replace(newFile.FullName, newFile.Extension, "", 1)
