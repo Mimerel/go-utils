@@ -96,24 +96,28 @@ func (params *ScanParams) ScanFolder() {
 func CopyFileContents(src, dst string) (err error) {
 	in, err := os.Open(src)
 	if err != nil {
-		return
+		fmt.Printf("Upable to open source file")
+		return err
 	}
 	defer in.Close()
 	out, err := os.Create(dst)
 	if err != nil {
-		return
+		fmt.Printf("Upable to create destination file")
+		return err
 	}
 	defer func() {
 		cerr := out.Close()
 		if err == nil {
+			fmt.Printf("Failed to close destination file")
 			err = cerr
 		}
 	}()
 	if _, err = io.Copy(out, in); err != nil {
-		return
+		fmt.Printf("Failed while copy")
+		return err
 	}
 	err = out.Sync()
-	return
+	return err
 }
 
 /**
