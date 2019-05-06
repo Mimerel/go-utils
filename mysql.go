@@ -277,7 +277,8 @@ func (c *MariaDBConfiguration) Replace(priority string, table string, col string
 		return err
 	}
 	defer c.DB.Close()
-	request, err := c.DB.Prepare("REPLACE " + priority + " INTO " + table + " " + col + " VALUES " + val)
+	sqlRequest := "REPLACE " + priority + " INTO " + table + " " + col + " VALUES " + val
+	request, err := c.DB.Prepare(sqlRequest)
 	if err != nil {
 		c.LoggerError("Unable to prepare Replace request")
 		return err
@@ -303,9 +304,10 @@ func (c *MariaDBConfiguration) Insert(ignore bool, table string, col string, val
 	if ignore {
 		ignoreValue = "IGNORE"
 	}
-	request, err := c.DB.Prepare("INSERT " + ignoreValue + " INTO " + table + " " + col + " VALUES " + val)
+	sqlRequest := "INSERT " + ignoreValue + " INTO " + table + " " + col + " VALUES " + val
+	request, err := c.DB.Prepare(sqlRequest)
 	if err != nil {
-		c.LoggerError("Unable to prepare insert request")
+		c.LoggerError("Unable to prepare insert request %s", sqlRequest)
 		return err
 	}
 
@@ -412,7 +414,7 @@ func SearchInTable(c *MariaDBConfiguration) (data interface{}, err error) {
 	c.LoggerInfo("Sending request to database %s", request)
 	resp, err := c.Select(request)
 	if err != nil {
-		c.LoggerError("Unable to launch select request : %v", err)
+		c.LoggerError("Unable to launch select request : %v, %s", err, request)
 		return data, err
 	}
 	c.LoggerInfo("Extracting data from response")
