@@ -9,19 +9,27 @@ import (
 Spits the row information in cells
 */
 func splitRowValues(row string, seperator string, debug bool) (parts []string, err error) {
-	replacementSeperator := "π"
+	replacementSeperator := "ZzZ"
 	if debug {
 		fmt.Printf("row before: %s\n", row)
 	}
 	row = strings.Replace(row, seperator, replacementSeperator, -1)
 	replaceIt := true
 	newRow := ""
-	for _, char := range row {
+	for k, char := range row {
 		if strings.EqualFold(string(char), "\"") {
 			replaceIt = !replaceIt
 		}
-		if replaceIt && strings.EqualFold(string(char), replacementSeperator) {
-			newRow += seperator
+		findValue := ""
+		if k < (len(row)-len(replacementSeperator)) {
+			for i := 0; i < len(replacementSeperator); i++ {
+				findValue += string(row[k+i])
+			}
+		}
+		if replaceIt &&
+			k < (len(row)-len(replacementSeperator)) &&
+			strings.EqualFold(findValue, replacementSeperator) {
+			newRow += seperator + string(replacementSeperator[0])
 		} else {
 			newRow += string(char)
 		}
