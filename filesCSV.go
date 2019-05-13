@@ -188,6 +188,8 @@ func (f *CSVFileStructure) extractDataFromRow() (err error) {
 		}
 		index, err := f.getFieldIndex(f.Titles[k])
 		if err != nil {
+			f.LoggerInfo("field value : %s", val)
+			f.LoggerInfo("field index : %v", k)
 			return err
 		}
 
