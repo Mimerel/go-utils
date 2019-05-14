@@ -29,7 +29,8 @@ func splitRowValues(row string, seperator string, debug bool) (parts []string, e
 		if replaceIt &&
 			k < (len(row)-len(replacementSeperator)) &&
 			strings.EqualFold(findValue, replacementSeperator) {
-			newRow += seperator + string(replacementSeperator[0])
+			newRow += seperator
+			k = k + 2
 		} else {
 			newRow += string(char)
 		}
