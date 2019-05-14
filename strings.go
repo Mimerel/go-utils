@@ -10,6 +10,7 @@ Spits the row information in cells
 */
 func splitRowValues(row string, seperator string, debug bool) (parts []string, err error) {
 	replacementSeperator := "ZzZ"
+	skip := 0;
 	if debug {
 		fmt.Printf("row before: %s\n", row)
 	}
@@ -17,23 +18,28 @@ func splitRowValues(row string, seperator string, debug bool) (parts []string, e
 	replaceIt := true
 	newRow := ""
 	for k, char := range row {
-		if strings.EqualFold(string(char), "\"") {
-			replaceIt = !replaceIt
-		}
-		findValue := ""
-		if k < (len(row)-len(replacementSeperator)) {
-			for i := 0; i < len(replacementSeperator); i++ {
-				findValue += string(row[k+i])
+		if skip <= 0 {
+			if strings.EqualFold(string(char), "\"") {
+				replaceIt = !replaceIt
 			}
-		}
-		if replaceIt &&
-			k < (len(row)-len(replacementSeperator)) &&
-			strings.EqualFold(findValue, replacementSeperator) {
-			newRow += seperator
-			k = k + 2
+			findValue := ""
+			if k < (len(row) - len(replacementSeperator)) {
+				for i := 0; i < len(replacementSeperator); i++ {
+					findValue += string(row[k+i])
+				}
+			}
+			if replaceIt &&
+				k < (len(row)-len(replacementSeperator)) &&
+				strings.EqualFold(findValue, replacementSeperator) {
+				newRow += seperator
+				skip = len(replacementSeperator) - 1
+			} else {
+				newRow += string(char)
+			}
 		} else {
-			newRow += string(char)
+			skip -= 1
 		}
+
 	}
 
 	if debug {
