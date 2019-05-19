@@ -214,11 +214,13 @@ func (c *MariaDBConfiguration) DecryptStructureAndData(data interface{}) (column
 	structureModel := reflect.New(elements).Elem()
 
 	for i := 0; i < structureModel.NumField(); i++ {
-		titleDB = append(titleDB, StructureDetails{
-			Index:     i,
-			FieldTag:  structureModel.Type().Field(i).Tag.Get("csv"),
-			FieldName: structureModel.Type().Field(i).Name,
-		})
+		if structureModel.Type().Field(i).Tag.Get("csv") != "" {
+			titleDB = append(titleDB, StructureDetails{
+				Index:     i,
+				FieldTag:  structureModel.Type().Field(i).Tag.Get("csv"),
+				FieldName: structureModel.Type().Field(i).Name,
+			})
+		}
 	}
 
 	_, _ = fmt.Fprintf(&columnsBuilder, "%s", "(")
