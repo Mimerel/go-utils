@@ -2,8 +2,8 @@ package go_utils
 
 import (
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 	"reflect"
 	"strconv"
 	"strings"
@@ -34,7 +34,7 @@ func ExtractDataFromRowToStructure(output interface{}, params ExtractDataOptions
 		fmt.Printf("reflect.TypeOf(output).Elem(): %v\n", reflect.TypeOf(output).Elem())
 		fmt.Printf("reflect.TypeOf(output).Elem().Elem(): %v\n", reflect.TypeOf(output).Elem().Elem())
 	}
-	
+
 	elements := reflect.TypeOf(output).Elem().Elem()
 	destinationStructure := reflect.New(elements).Elem()
 
@@ -134,21 +134,20 @@ func transforedString(params ExtractDataOptions, value string) (result string) {
 	return result
 }
 
-
-
 type MariaDBConfiguration struct {
-	LoggerInfo  func(string, ...interface{})
-	LoggerError func(string, ...interface{})
-	User        string
-	Password    string
-	Database    string
-	IP          string
-	Port        string
-	DB          *sql.DB
-	Seperator   string
-	WhereClause string
-	Table       string
-	DataType    interface{}
+	LoggerInfo   func(string, ...interface{})
+	LoggerError  func(string, ...interface{})
+	User         string
+	Password     string
+	Database     string
+	IP           string
+	Port         string
+	DB           *sql.DB
+	Seperator    string
+	selectClause string
+	WhereClause  string
+	Table        string
+	DataType     interface{}
 }
 
 type StructureDetails struct {
@@ -406,13 +405,16 @@ func (c *MariaDBConfiguration) Select(requestString string) (response SelectResp
 }
 
 func SearchInTable(c *MariaDBConfiguration) (data interface{}, err error) {
+	if c.selectClause == "" {
+		c.selectClause = "*"
+	}
 	err = c.connectMariaDb()
 	if err != nil {
 		c.LoggerError("Unable to connect to database")
 		return data, err
 	}
 	defer c.DB.Close()
-	request := "SELECT * FROM " + c.Table + " WHERE " + c.WhereClause
+	request := "SELECT "+c.selectClause + " FROM " + c.Table + " WHERE " + c.WhereClause
 	c.LoggerInfo("Sending request to database %s", request)
 	resp, err := c.Select(request)
 	if err != nil {
