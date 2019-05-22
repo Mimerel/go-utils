@@ -202,6 +202,9 @@ func (c *MariaDBConfiguration) connectMariaDb() (err error) {
 	return nil
 }
 
+/**
+Essentially used for reading and storing CSV files
+ */
 func (c *MariaDBConfiguration) DecryptStructureAndData(data interface{}) (columns string, values string, err error) {
 
 	var valuesBuilder strings.Builder
@@ -271,7 +274,9 @@ func (c *MariaDBConfiguration) DecryptStructureAndData(data interface{}) (column
 	return columns, values, nil
 }
 
-func (c *MariaDBConfiguration) DecryptStructureAndDataQuote(data interface{}, sending bool) (columns string, values string, err error) {
+
+// Reading and storing other than csv data
+func (c *MariaDBConfiguration) DecryptStructureAndDataQuote(data interface{}) (columns string, values string, err error) {
 
 	var valuesBuilder strings.Builder
 	var columnsBuilder strings.Builder
@@ -320,9 +325,6 @@ func (c *MariaDBConfiguration) DecryptStructureAndDataQuote(data interface{}, se
 				switch v.Index(i).Field(v1.Index).Kind() {
 				case reflect.String:
 					valueString := v.Index(i).Field(v1.Index).String()
-					if sending {
-						valueString = strconv.Quote(v.Index(i).Field(v1.Index).String())
-					}
 					_, _ = fmt.Fprintf(&subValuesBuilder, "%s%s%s", "\"", valueString, "\"")
 				case reflect.Int64:
 					_, _ = fmt.Fprintf(&subValuesBuilder, "%s", strconv.FormatInt(v.Index(i).Field(v1.Index).Int(), 10))
