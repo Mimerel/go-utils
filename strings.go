@@ -51,7 +51,7 @@ func splitRowValues(row string, seperator string, debug bool) (parts []string, e
 	}
 	for k, _ := range parts {
 		parts[k] = strings.Replace(parts[k], replacementSeperator, seperator, -1)
-		parts[k] = strings.Replace(parts[k], "\"", "", -1)
+		//parts[k] = strings.Replace(parts[k], "\"", "", -1)
 	}
 	if debug {
 		fmt.Printf("Parts after: %v\n", parts)

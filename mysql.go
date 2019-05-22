@@ -271,6 +271,75 @@ func (c *MariaDBConfiguration) DecryptStructureAndData(data interface{}) (column
 	return columns, values, nil
 }
 
+func (c *MariaDBConfiguration) DecryptStructureAndDataQuote(data interface{}) (columns string, values string, err error) {
+
+	var valuesBuilder strings.Builder
+	var columnsBuilder strings.Builder
+	titleDB := []StructureDetails{}
+
+	// Analysing Structure details
+	elements := reflect.TypeOf(data).Elem()
+	structureModel := reflect.New(elements).Elem()
+
+	for i := 0; i < structureModel.NumField(); i++ {
+		if structureModel.Type().Field(i).Tag.Get("csv") != "" {
+			titleDB = append(titleDB, StructureDetails{
+				Index:     i,
+				FieldTag:  structureModel.Type().Field(i).Tag.Get("csv"),
+				FieldName: structureModel.Type().Field(i).Name,
+			})
+		}
+	}
+
+	_, _ = fmt.Fprintf(&columnsBuilder, "%s", "(")
+	for k, v := range titleDB {
+		if k != 0 {
+			_, _ = fmt.Fprintf(&columnsBuilder, "%s", ",")
+		}
+		_, _ = fmt.Fprintf(&columnsBuilder, "`%s`", v.FieldTag)
+	}
+	_, _ = fmt.Fprintf(&columnsBuilder, "%s", ")")
+
+	columns = columnsBuilder.String()
+
+	switch reflect.TypeOf(data).Kind() {
+	case reflect.Slice:
+		v := reflect.ValueOf(data)
+		for i := 0; i < v.Len(); i++ {
+			var subValuesBuilder strings.Builder
+			if i != 0 {
+				_, _ = fmt.Fprintf(&valuesBuilder, "%s", ",")
+			}
+			_, _ = fmt.Fprintf(&subValuesBuilder, "%s", "(")
+			for k1, v1 := range titleDB {
+				// Finding correct name of column corresponding to field
+				if k1 != 0 {
+					_, _ = fmt.Fprintf(&subValuesBuilder, "%s", ",")
+				}
+				// Change output depending on type of field to import
+				switch v.Index(i).Field(v1.Index).Kind() {
+				case reflect.String:
+					valueString := strconv.Quote(v.Index(i).Field(v1.Index).String())
+					_, _ = fmt.Fprintf(&subValuesBuilder, "%s%s%s", "\"", valueString, "\"")
+				case reflect.Int64:
+					_, _ = fmt.Fprintf(&subValuesBuilder, "%s", strconv.FormatInt(v.Index(i).Field(v1.Index).Int(), 10))
+				case reflect.Bool:
+					_, _ = fmt.Fprintf(&subValuesBuilder, "%s", strconv.FormatBool(v.Index(i).Field(v1.Index).Bool()))
+				default:
+					_, _ = fmt.Fprintf(&subValuesBuilder, "%s", v.Index(i).Field(v1.Index).String())
+				}
+
+			}
+			_, _ = fmt.Fprintf(&subValuesBuilder, "%s", ")")
+			_, _ = fmt.Fprintf(&valuesBuilder, "%s", subValuesBuilder.String())
+		}
+
+	}
+	values = valuesBuilder.String()
+	return columns, values, nil
+}
+
+
 func (c *MariaDBConfiguration) Replace(priority string, table string, col string, val string) (err error) {
 	err = c.connectMariaDb()
 	if err != nil {
