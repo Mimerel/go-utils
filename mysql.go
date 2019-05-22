@@ -144,7 +144,7 @@ type MariaDBConfiguration struct {
 	Port         string
 	DB           *sql.DB
 	Seperator    string
-	selectClause string
+	SelectClause string
 	WhereClause  string
 	Table        string
 	DataType     interface{}
@@ -405,8 +405,8 @@ func (c *MariaDBConfiguration) Select(requestString string) (response SelectResp
 }
 
 func SearchInTable(c *MariaDBConfiguration) (data interface{}, err error) {
-	if c.selectClause == "" {
-		c.selectClause = "*"
+	if c.SelectClause == "" {
+		c.SelectClause = "*"
 	}
 	err = c.connectMariaDb()
 	if err != nil {
@@ -414,7 +414,7 @@ func SearchInTable(c *MariaDBConfiguration) (data interface{}, err error) {
 		return data, err
 	}
 	defer c.DB.Close()
-	request := "SELECT "+c.selectClause + " FROM " + c.Table + " WHERE " + c.WhereClause
+	request := "SELECT "+c.SelectClause + " FROM " + c.Table + " WHERE " + c.WhereClause
 	c.LoggerInfo("Sending request to database %s", request)
 	resp, err := c.Select(request)
 	if err != nil {
