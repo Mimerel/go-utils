@@ -258,6 +258,8 @@ func (c *MariaDBConfiguration) DecryptStructureAndData(data interface{}) (column
 					_, _ = fmt.Fprintf(&subValuesBuilder, "%s%s%s", "\"", valueString, "\"")
 				case reflect.Int64:
 					_, _ = fmt.Fprintf(&subValuesBuilder, "%s", strconv.FormatInt(v.Index(i).Field(v1.Index).Int(), 10))
+				case reflect.Float64:
+					_, _ = fmt.Fprintf(&subValuesBuilder, "%s", strconv.FormatFloat(v.Index(i).Field(v1.Index).Float(), 'E', -1, 64))
 				case reflect.Bool:
 					_, _ = fmt.Fprintf(&subValuesBuilder, "%s", strconv.FormatBool(v.Index(i).Field(v1.Index).Bool()))
 				default:
