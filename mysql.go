@@ -70,6 +70,12 @@ func ExtractDataFromRowToStructure(output interface{}, params ExtractDataOptions
 					return err
 				}
 				destinationStructure.Field(index).SetInt(valInt)
+			case reflect.Float64:
+				valFloat, err := strconv.ParseFloat(val,  64)
+				if err != nil {
+					return err
+				}
+				destinationStructure.Field(index).SetFloat(valFloat)
 			case reflect.Int:
 				valInt, err := strconv.Atoi(val)
 				if err != nil {
