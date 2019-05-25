@@ -498,7 +498,12 @@ func SearchInTable(c *MariaDBConfiguration) (data interface{}, err error) {
 		return data, err
 	}
 	defer c.DB.Close()
-	request := "SELECT "+c.SelectClause + " FROM " + c.Table + " WHERE " + c.WhereClause
+	request := ""
+	if c.WhereClause == "" {
+		request = "SELECT "+ c.SelectClause + " FROM " + c.Table
+	} else {
+		request = "SELECT "+ c.SelectClause + " FROM " + c.Table + " WHERE " + c.WhereClause
+	}
 	c.LoggerInfo("Sending request to database %s", request)
 	resp, err := c.Select(request)
 	if err != nil {
