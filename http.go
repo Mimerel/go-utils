@@ -24,6 +24,7 @@ type HttpRequestParams struct {
 	LogPrefix string
 	DelayBetweenRetry time.Duration
 	Debug bool
+	SuccessCode []int
 }
 
 
@@ -93,7 +94,7 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 		}
 
 		response, err = httpClient.Do(request)
-		if err != nil || response.StatusCode > 299 {
+		if err != nil || intInArray(response.StatusCode, requestParams.SuccessCode) {
 			if requestParams.Debug {
 				log.Debug("Response : %v",response)
 			}
@@ -126,3 +127,14 @@ func HttpReadResponse(response *http.Response) (err error, body []byte) {
 	return nil, body
 }
 
+func intInArray( value int, array []int) bool {
+	for _, v := range array {
+		if v == value {
+			return false
+		}
+	}
+	if value > 299 {
+		return true
+	}
+	return false
+}
