@@ -71,7 +71,7 @@ func ExtractDataFromRowToStructure(output interface{}, params ExtractDataOptions
 				}
 				destinationStructure.Field(index).SetInt(valInt)
 			case reflect.Float64:
-				valFloat, err := strconv.ParseFloat(val,  64)
+				valFloat, err := strconv.ParseFloat(val, 64)
 				if err != nil {
 					return err
 				}
@@ -154,6 +154,7 @@ type MariaDBConfiguration struct {
 	WhereClause  string
 	Table        string
 	DataType     interface{}
+	Debug        bool
 }
 
 type StructureDetails struct {
@@ -282,7 +283,6 @@ func (c *MariaDBConfiguration) DecryptStructureAndData(data interface{}) (column
 	return columns, values, nil
 }
 
-
 // Reading and storing other than csv data
 func (c *MariaDBConfiguration) DecryptStructureAndDataQuote(data interface{}) (columns string, values string, err error) {
 
@@ -353,7 +353,6 @@ func (c *MariaDBConfiguration) DecryptStructureAndDataQuote(data interface{}) (c
 	values = valuesBuilder.String()
 	return columns, values, nil
 }
-
 
 func (c *MariaDBConfiguration) Replace(priority string, table string, col string, val string) (err error) {
 	err = c.connectMariaDb()
@@ -500,9 +499,9 @@ func SearchInTable(c *MariaDBConfiguration) (data interface{}, err error) {
 	defer c.DB.Close()
 	request := ""
 	if c.WhereClause == "" {
-		request = "SELECT "+ c.SelectClause + " FROM " + c.Table
+		request = "SELECT " + c.SelectClause + " FROM " + c.Table
 	} else {
-		request = "SELECT "+ c.SelectClause + " FROM " + c.Table + " WHERE " + c.WhereClause
+		request = "SELECT " + c.SelectClause + " FROM " + c.Table + " WHERE " + c.WhereClause
 	}
 	c.LoggerInfo("Sending request to database %s", request)
 	resp, err := c.Select(request)
@@ -515,7 +514,7 @@ func SearchInTable(c *MariaDBConfiguration) (data interface{}, err error) {
 	params.Rows = resp.Rows
 	params.Cols = resp.Columns
 	params.Seperator = resp.Seperator
-	params.Debug = false
+	params.Debug = c.Debug
 	params.RemoveEndSpace = true
 	params.RemoveStartSpace = true
 	params.RemoveDoubleSpaces = true
