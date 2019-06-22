@@ -153,6 +153,7 @@ type MariaDBConfiguration struct {
 	SelectClause string
 	WhereClause  string
 	Table        string
+	FullRequest  string
 	DataType     interface{}
 	Debug        bool
 }
@@ -502,6 +503,9 @@ func SearchInTable(c *MariaDBConfiguration) (data interface{}, err error) {
 		request = "SELECT " + c.SelectClause + " FROM " + c.Table
 	} else {
 		request = "SELECT " + c.SelectClause + " FROM " + c.Table + " WHERE " + c.WhereClause
+	}
+	if c.FullRequest != "" {
+		request = c.FullRequest
 	}
 	c.LoggerInfo("Sending request to database %s", request)
 	resp, err := c.Select(request)
