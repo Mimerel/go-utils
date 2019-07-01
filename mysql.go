@@ -17,6 +17,7 @@ seperator = seperator used by mysql
 */
 type ExtractDataOptions struct {
 	Rows               []string
+	Rows2               [][]string
 	Cols               []string
 	Seperator          string
 	Debug              bool
@@ -63,7 +64,7 @@ func ExtractDataFromRowToStructure(output interface{}, params ExtractDataOptions
 			}
 			switch destinationStructure.Field(index).Kind() {
 			case reflect.String:
-				destinationStructure.Field(index).SetString(transforedString(params, val))
+				destinationStructure.Field(index).SetString(transformedString(params, val))
 			case reflect.Int64:
 				valInt, err := strconv.ParseInt(val, 10, 64)
 				if err != nil {
@@ -92,13 +93,85 @@ func ExtractDataFromRowToStructure(output interface{}, params ExtractDataOptions
 				}
 				destinationStructure.Field(index).SetBool(valBool)
 			default:
-				destinationStructure.Field(index).SetString(transforedString(params, val))
+				destinationStructure.Field(index).SetString(transformedString(params, val))
 			}
 		}
 		dbase.Set(reflect.Append(dbase, destinationStructure))
 	}
 	return nil
 }
+
+/**
+Method that extracts the data for a Row, stores it in a structure and appends the output array
+*/
+func ExtractDataFromRowToStructure2(output interface{}, params ExtractDataOptions) (err error) {
+	if params.Debug {
+		fmt.Printf("reflect.TypeOf(output): %v\n", reflect.TypeOf(output))
+		fmt.Printf("reflect.TypeOf(output).Elem(): %v\n", reflect.TypeOf(output).Elem())
+		fmt.Printf("reflect.TypeOf(output).Elem().Elem(): %v\n", reflect.TypeOf(output).Elem().Elem())
+	}
+
+	elements := reflect.TypeOf(output).Elem().Elem()
+	destinationStructure := reflect.New(elements).Elem()
+
+	titleDB, err := extractNamesAndTagsFromStructure(destinationStructure)
+	if params.Debug {
+		fmt.Printf("Title dbase\n")
+		fmt.Printf("----\n")
+		for _, v := range titleDB {
+			fmt.Printf("Index: %v\n", v.Index)
+			fmt.Printf("csv Title: %v\n", v.CSVTitle)
+			fmt.Printf("str Title: %v\n", v.StructureTitle)
+			fmt.Printf("----")
+		}
+	}
+	for _, v := range params.Rows2 {
+
+		dbase := reflect.ValueOf(output).Elem()
+		for k, val := range v {
+			index, err := getFieldIndex(params.Cols[k], titleDB)
+			if err != nil {
+				return err
+			}
+			switch destinationStructure.Field(index).Kind() {
+			case reflect.String:
+				destinationStructure.Field(index).SetString(transformedString(params, val))
+			case reflect.Int64:
+				valInt, err := strconv.ParseInt(val, 10, 64)
+				if err != nil {
+					return err
+				}
+				destinationStructure.Field(index).SetInt(valInt)
+			case reflect.Float64:
+				valFloat, err := strconv.ParseFloat(val, 64)
+				if err != nil {
+					return err
+				}
+				destinationStructure.Field(index).SetFloat(valFloat)
+			case reflect.Int:
+				valInt, err := strconv.Atoi(val)
+				if err != nil {
+					return err
+				}
+				destinationStructure.Field(index).SetCap(valInt)
+			case reflect.Bool:
+				if val == "" {
+					val = "False"
+				}
+				valBool, err := strconv.ParseBool(val)
+				if err != nil {
+					return err
+				}
+				destinationStructure.Field(index).SetBool(valBool)
+			default:
+				destinationStructure.Field(index).SetString(transformedString(params, val))
+			}
+		}
+		dbase.Set(reflect.Append(dbase, destinationStructure))
+	}
+	return nil
+}
+
 
 /**
 Searches for the struct field corresponding to the csv column title
@@ -124,7 +197,7 @@ func extractNamesAndTagsFromStructure(destinationStructure reflect.Value) (data 
 
 	return data, nil
 }
-func transforedString(params ExtractDataOptions, value string) (result string) {
+func transformedString(params ExtractDataOptions, value string) (result string) {
 	result = value
 	if params.RemoveDoubleSpaces {
 		for strings.Index(result, "  ") != -1 {
@@ -168,6 +241,11 @@ type SelectResponse struct {
 	Columns   []string
 	Rows      []string
 	Seperator string
+}
+
+type SelectResponse2 struct {
+	Columns   []string
+	Rows      [][]string
 }
 
 func NewMariaDB() *MariaDBConfiguration {
@@ -488,6 +566,63 @@ func (c *MariaDBConfiguration) Select(requestString string) (response SelectResp
 	return response, nil
 }
 
+func (c *MariaDBConfiguration) Select2(requestString string) (response SelectResponse2, err error) {
+	err = c.connectMariaDb()
+	if err != nil {
+		c.LoggerError("Unable to connect to database")
+		return response, err
+	}
+	defer c.DB.Close()
+
+	// Execute the query
+	rows, err := c.DB.Query(requestString)
+	if err != nil {
+		c.LoggerError("Failed to run Query : %+v", err)
+		return response, err
+	}
+
+	// Get column names
+	response.Columns, err = rows.Columns()
+	if err != nil {
+		c.LoggerError("Failed to get columns : %+v", err)
+		return response, err
+	}
+
+	// Make a slice for the values
+	values := make([]sql.RawBytes, len(response.Columns))
+	scanArgs := make([]interface{}, len(values))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	// Fetch rows
+	for rows.Next() {
+		// get RawBytes from data
+		err = rows.Scan(scanArgs...)
+		if err != nil {
+			c.LoggerError("Failed to get row : %+v", err)
+			return response, err
+		}
+		var rowBuilder = []string{}
+		for _, col := range values {
+			// Here we can check if the value is nil (NULL value)
+
+			if col == nil {
+				rowBuilder = append(rowBuilder, "")
+			} else {
+				rowBuilder = append(rowBuilder,  string(col))
+			}
+		}
+		response.Rows = append(response.Rows, rowBuilder)
+	}
+	if err = rows.Err(); err != nil {
+		c.LoggerError("Failed to run Query : %+v", err)
+		return response, err
+	}
+
+	return response, nil
+}
+
 func SearchInTable(c *MariaDBConfiguration) (data interface{}, err error) {
 	if c.SelectClause == "" {
 		c.SelectClause = "*"
@@ -523,6 +658,49 @@ func SearchInTable(c *MariaDBConfiguration) (data interface{}, err error) {
 	params.RemoveStartSpace = true
 	params.RemoveDoubleSpaces = true
 	err = ExtractDataFromRowToStructure(c.DataType, *params)
+	if err != nil {
+		c.LoggerError("Unable to deserialize response : %v", err)
+		return data, err
+	}
+
+	c.LoggerInfo("Extracting ended of data from response")
+	return c.DataType, nil
+}
+
+func SearchInTable2(c *MariaDBConfiguration) (data interface{}, err error) {
+	if c.SelectClause == "" {
+		c.SelectClause = "*"
+	}
+	err = c.connectMariaDb()
+	if err != nil {
+		c.LoggerError("Unable to connect to database")
+		return data, err
+	}
+	defer c.DB.Close()
+	request := ""
+	if c.WhereClause == "" {
+		request = "SELECT " + c.SelectClause + " FROM " + c.Table
+	} else {
+		request = "SELECT " + c.SelectClause + " FROM " + c.Table + " WHERE " + c.WhereClause
+	}
+	if c.FullRequest != "" {
+		request = c.FullRequest
+	}
+	c.LoggerInfo("Sending request to database %s", request)
+	resp, err := c.Select2(request)
+	if err != nil {
+		c.LoggerError("Unable to launch select request : %v, %s", err, request)
+		return data, err
+	}
+	c.LoggerInfo("Extracting data from response")
+	params := new(ExtractDataOptions)
+	params.Rows2 = resp.Rows
+	params.Cols = resp.Columns
+	params.Debug = c.Debug
+	params.RemoveEndSpace = true
+	params.RemoveStartSpace = true
+	params.RemoveDoubleSpaces = true
+	err = ExtractDataFromRowToStructure2(c.DataType, *params)
 	if err != nil {
 		c.LoggerError("Unable to deserialize response : %v", err)
 		return data, err
