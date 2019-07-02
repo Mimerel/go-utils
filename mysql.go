@@ -98,6 +98,9 @@ func ExtractDataFromRowToStructure(output interface{}, params ExtractDataOptions
 		}
 		dbase.Set(reflect.Append(dbase, destinationStructure))
 	}
+	params = ExtractDataOptions{}
+	elements = nil
+	titleDB = nil
 	return nil
 }
 
@@ -169,6 +172,9 @@ func ExtractDataFromRowToStructure2(output interface{}, params ExtractDataOption
 		}
 		dbase.Set(reflect.Append(dbase, destinationStructure))
 	}
+	params = ExtractDataOptions{}
+	elements = nil
+	titleDB = nil
 	return nil
 }
 
@@ -571,6 +577,7 @@ func (c *MariaDBConfiguration) Select(requestString string) (response SelectResp
 	rowBuilder.Reset()
 	values = nil
 	scanArgs = nil
+	rows = nil
 	return response, nil
 }
 
@@ -630,6 +637,7 @@ func (c *MariaDBConfiguration) Select2(requestString string) (response SelectRes
 	}
 	values = nil
 	rows = nil
+	scanArgs = nil
 	return response, nil
 }
 
