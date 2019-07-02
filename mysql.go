@@ -393,12 +393,12 @@ func (c *MariaDBConfiguration) DecryptStructureAndDataQuote(data interface{}) (c
 	_, _ = fmt.Fprintf(&columnsBuilder, "%s", ")")
 
 	columns = columnsBuilder.String()
-
+	var subValuesBuilder strings.Builder
 	switch reflect.TypeOf(data).Kind() {
 	case reflect.Slice:
 		v := reflect.ValueOf(data)
 		for i := 0; i < v.Len(); i++ {
-			var subValuesBuilder strings.Builder
+			subValuesBuilder.Reset()
 			if i != 0 {
 				_, _ = fmt.Fprintf(&valuesBuilder, "%s", ",")
 			}
@@ -429,7 +429,9 @@ func (c *MariaDBConfiguration) DecryptStructureAndDataQuote(data interface{}) (c
 		}
 
 	}
+	titleDB = []StructureDetails{}
 	values = valuesBuilder.String()
+	subValuesBuilder.Reset()
 	return columns, values, nil
 }
 
@@ -452,7 +454,7 @@ func (c *MariaDBConfiguration) Replace(priority string, table string, col string
 		c.LoggerError("Unable to execure Replace request")
 		return err
 	}
-
+	request = nil
 	return nil
 }
 
@@ -479,7 +481,10 @@ func (c *MariaDBConfiguration) Insert(ignore bool, table string, col string, val
 		c.LoggerError("Unable to execure insert request")
 		return err
 	}
-
+	request = nil
+	col = ""
+	val = ""
+	sqlRequest = ""
 	return nil
 }
 
@@ -536,6 +541,7 @@ func (c *MariaDBConfiguration) Select(requestString string) (response SelectResp
 	}
 
 	response.Seperator = c.Seperator
+	var rowBuilder strings.Builder
 	// Fetch rows
 	for rows.Next() {
 		// get RawBytes from data
@@ -544,7 +550,7 @@ func (c *MariaDBConfiguration) Select(requestString string) (response SelectResp
 			c.LoggerError("Failed to get row : %+v", err)
 			return response, err
 		}
-		var rowBuilder strings.Builder
+		rowBuilder.Reset()
 		for i, col := range values {
 			// Here we can check if the value is nil (NULL value)
 			if i != 0 {
@@ -562,7 +568,9 @@ func (c *MariaDBConfiguration) Select(requestString string) (response SelectResp
 		c.LoggerError("Failed to run Query : %+v", err)
 		return response, err
 	}
-
+	rowBuilder.Reset()
+	values = nil
+	scanArgs = nil
 	return response, nil
 }
 
@@ -614,12 +622,14 @@ func (c *MariaDBConfiguration) Select2(requestString string) (response SelectRes
 			}
 		}
 		response.Rows = append(response.Rows, rowBuilder)
+		rowBuilder = nil
 	}
 	if err = rows.Err(); err != nil {
 		c.LoggerError("Failed to run Query : %+v", err)
 		return response, err
 	}
-
+	values = nil
+	rows = nil
 	return response, nil
 }
 
@@ -664,6 +674,8 @@ func SearchInTable(c *MariaDBConfiguration) (data interface{}, err error) {
 	}
 
 	c.LoggerInfo("Extracting ended of data from response")
+	resp = SelectResponse{}
+	params = nil
 	return c.DataType, nil
 }
 
@@ -705,7 +717,8 @@ func SearchInTable2(c *MariaDBConfiguration) (data interface{}, err error) {
 		c.LoggerError("Unable to deserialize response : %v", err)
 		return data, err
 	}
-
+	params = nil
+	resp = SelectResponse2{}
 	c.LoggerInfo("Extracting ended of data from response")
 	return c.DataType, nil
 }
