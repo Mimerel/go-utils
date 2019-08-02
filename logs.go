@@ -34,20 +34,20 @@ func NewLogger(level LogLevel) LogParams {
 func (l LogParams) Info(message string, args ...interface{}) {
 	if l.level >= 1 {
 		computedMessage := fmt.Sprintf(message, args...)
-		fmt.Printf(InfoColor + time.Now().Format(time.RFC3339) + " - Info : " + computedMessage + " \n")
+		fmt.Printf(InfoColor + "%s", time.Now().Format(time.RFC3339) + " - Info : " + computedMessage + " \n")
 	}
 }
 
 func (l LogParams) Debug(message string, args ...interface{}) {
 	if l.level >= 2 {
 		computedMessage := fmt.Sprintf(message, args...)
-		fmt.Printf(DebugColor + time.Now().Format(time.RFC3339) + " - Debug :  " + computedMessage + " \n")
+		fmt.Printf(DebugColor+ "%s",  time.Now().Format(time.RFC3339) + " - Debug :  " + computedMessage + " \n")
 	}
 }
 
 func (l LogParams) Error(message string, args ...interface{}) {
 	if l.level >= 0 {
 		computedMessage := fmt.Sprintf(message, args...)
-		fmt.Printf(ErrorColor + time.Now().Format(time.RFC3339) + " - Error :  " + computedMessage + " \n")
+		fmt.Printf(ErrorColor + "%s",time.Now().Format(time.RFC3339) + " - Error :  " + computedMessage + " \n")
 	}
 }
