@@ -464,6 +464,29 @@ func (c *MariaDBConfiguration) Replace(priority string, table string, col string
 	return nil
 }
 
+func (c *MariaDBConfiguration) Update(requestString string) (err error) {
+	err = c.connectMariaDb()
+	if err != nil {
+		c.LoggerError("Unable to connect to database")
+		return err
+	}
+	defer c.DB.Close()
+	request, err := c.DB.Prepare(requestString)
+	if err != nil {
+		c.LoggerError("Unable to prepare Replace request")
+		return err
+	}
+
+	_, err = request.Exec()
+	if err != nil {
+		c.LoggerError("Unable to execure Replace request")
+		return err
+	}
+	request = nil
+	return nil
+}
+
+
 func (c *MariaDBConfiguration) Insert(ignore bool, table string, col string, val string) (err error) {
 	err = c.connectMariaDb()
 	if err != nil {
