@@ -16,6 +16,7 @@ const (
 	WarnColor = "\033[1;33m%s\033[0m"
 	ErrorColor = "\033[1;31m%s\033[0m"
 	DebugColor = "\033[0;36m%s\033[0m"
+	DebugPlusColor = "\033[01;33;43m"
 )
 
 func DefaultLogOutput(message string, args ...interface{}) {
@@ -42,6 +43,13 @@ func (l LogParams) Debug(message string, args ...interface{}) {
 	if l.level >= 2 {
 		computedMessage := fmt.Sprintf(message, args...)
 		fmt.Printf(DebugColor,  time.Now().Format(time.RFC3339) + " - Debug : " + computedMessage + " \n")
+	}
+}
+
+func (l LogParams) DebugPlus(message string, args ...interface{}) {
+	if l.level >= 2 {
+		computedMessage := fmt.Sprintf(message, args...)
+		fmt.Printf(DebugPlusColor,  time.Now().Format(time.RFC3339) + " - Debug : " + computedMessage + " \n")
 	}
 }
 
