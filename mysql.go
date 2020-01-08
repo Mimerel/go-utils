@@ -292,7 +292,8 @@ func (c *MariaDBConfiguration) init() (err error) {
 }
 
 func (c *MariaDBConfiguration) connectMariaDb() (err error) {
-	if c.DB == nil {
+	if c.DB == nil || c.DB.Ping() != nil {
+		c.LoggerInfo("***** DB ****** Creating new connexion")
 
 		c.init()
 		c.DB, err = sql.Open("mysql", c.User+":"+c.Password+"@tcp("+c.IP+":"+c.Port+")/"+c.Database)
@@ -300,6 +301,8 @@ func (c *MariaDBConfiguration) connectMariaDb() (err error) {
 			c.LoggerError("Unable to create connexion to MariaDb")
 			return err
 		}
+	} else {
+		c.LoggerInfo("***** DB ****** Using previous connexion")
 	}
 
 	return nil
