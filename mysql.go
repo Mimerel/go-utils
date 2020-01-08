@@ -165,7 +165,7 @@ func ExtractDataFromRowToStructure2(output interface{}, params ExtractDataOption
 				if err != nil {
 					return err
 				}
-				destinationStructure.Field(index).SetCap(valInt)
+				destinationStructure.Field(index).SetInt(int64(valInt))
 			case reflect.Bool:
 				if val == "" {
 					val = "False"
