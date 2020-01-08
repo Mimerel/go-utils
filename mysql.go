@@ -140,18 +140,27 @@ func ExtractDataFromRowToStructure2(output interface{}, params ExtractDataOption
 			case reflect.String:
 				destinationStructure.Field(index).SetString(transformedString(params, val))
 			case reflect.Int64:
+				if val == "" {
+					val = "0"
+				}
 				valInt, err := strconv.ParseInt(val, 10, 64)
 				if err != nil {
 					return err
 				}
 				destinationStructure.Field(index).SetInt(valInt)
 			case reflect.Float64:
+				if val == "" {
+					val = "0"
+				}
 				valFloat, err := strconv.ParseFloat(val, 64)
 				if err != nil {
 					return err
 				}
 				destinationStructure.Field(index).SetFloat(valFloat)
 			case reflect.Int:
+				if val == "" {
+					val = "0"
+				}
 				valInt, err := strconv.Atoi(val)
 				if err != nil {
 					return err
