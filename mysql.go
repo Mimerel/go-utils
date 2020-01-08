@@ -292,7 +292,7 @@ func (c *MariaDBConfiguration) init() (err error) {
 }
 
 func (c *MariaDBConfiguration) connectMariaDb() (err error) {
-	if c.DB == nil || c.DB.Ping() != nil {
+	if c.DB.Ping() != nil {
 		c.LoggerInfo("***** DB ****** Creating new connexion")
 
 		c.init()
