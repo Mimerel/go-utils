@@ -17,7 +17,7 @@ seperator = seperator used by mysql
 */
 type ExtractDataOptions struct {
 	Rows               []string
-	Rows2               [][]string
+	Rows2              [][]string
 	Cols               []string
 	Seperator          string
 	Debug              bool
@@ -187,7 +187,6 @@ func ExtractDataFromRowToStructure2(output interface{}, params ExtractDataOption
 	return nil
 }
 
-
 /**
 Searches for the struct field corresponding to the csv column title
 */
@@ -259,8 +258,8 @@ type SelectResponse struct {
 }
 
 type SelectResponse2 struct {
-	Columns   []string
-	Rows      [][]string
+	Columns []string
+	Rows    [][]string
 }
 
 func NewMariaDB() *MariaDBConfiguration {
@@ -293,11 +292,14 @@ func (c *MariaDBConfiguration) init() (err error) {
 }
 
 func (c *MariaDBConfiguration) connectMariaDb() (err error) {
-	c.init()
-	c.DB, err = sql.Open("mysql", c.User+":"+c.Password+"@tcp("+c.IP+":"+c.Port+")/"+c.Database)
-	if err != nil {
-		c.LoggerError("Unable to create connexion to MariaDb")
-		return err
+	if c.DB == nil {
+
+		c.init()
+		c.DB, err = sql.Open("mysql", c.User+":"+c.Password+"@tcp("+c.IP+":"+c.Port+")/"+c.Database)
+		if err != nil {
+			c.LoggerError("Unable to create connexion to MariaDb")
+			return err
+		}
 	}
 
 	return nil
@@ -305,7 +307,7 @@ func (c *MariaDBConfiguration) connectMariaDb() (err error) {
 
 /**
 Essentially used for reading and storing CSV files
- */
+*/
 func (c *MariaDBConfiguration) DecryptStructureAndData(data interface{}) (columns string, values string, err error) {
 
 	var valuesBuilder strings.Builder
@@ -495,7 +497,6 @@ func (c *MariaDBConfiguration) Update(requestString string) (err error) {
 	return nil
 }
 
-
 func (c *MariaDBConfiguration) Insert(ignore bool, table string, col string, val string) (err error) {
 	err = c.connectMariaDb()
 	if err != nil {
@@ -657,7 +658,7 @@ func (c *MariaDBConfiguration) Select2(requestString string) (response SelectRes
 			if col == nil {
 				rowBuilder = append(rowBuilder, "")
 			} else {
-				rowBuilder = append(rowBuilder,  string(col))
+				rowBuilder = append(rowBuilder, string(col))
 			}
 		}
 		response.Rows = append(response.Rows, rowBuilder)
@@ -729,6 +730,50 @@ func SearchInTable2(c *MariaDBConfiguration) (data interface{}, err error) {
 		return data, err
 	}
 	defer c.DB.Close()
+	request := ""
+	if c.WhereClause == "" {
+		request = "SELECT " + c.SelectClause + " FROM " + c.Table
+	} else {
+		request = "SELECT " + c.SelectClause + " FROM " + c.Table + " WHERE " + c.WhereClause
+	}
+	if c.FullRequest != "" {
+		request = c.FullRequest
+	}
+	c.LoggerInfo("Sending request to database %s", request)
+	resp, err := c.Select2(request)
+	if err != nil {
+		c.LoggerError("Unable to launch select request : %v, %s", err, request)
+		return data, err
+	}
+	c.LoggerInfo("Extracting data from response")
+	params := new(ExtractDataOptions)
+	params.Rows2 = resp.Rows
+	params.Cols = resp.Columns
+	params.Debug = c.Debug
+	params.RemoveEndSpace = true
+	params.RemoveStartSpace = true
+	params.RemoveDoubleSpaces = true
+	err = ExtractDataFromRowToStructure2(c.DataType, *params)
+	if err != nil {
+		c.LoggerError("Unable to deserialize response : %v", err)
+		return data, err
+	}
+	params = nil
+	resp = SelectResponse2{}
+	c.LoggerInfo("Extracting ended of data from response")
+	return c.DataType, nil
+}
+
+func SearchInTable3(c *MariaDBConfiguration) (data interface{}, err error) {
+	if c.SelectClause == "" {
+		c.SelectClause = "*"
+	}
+	err = c.connectMariaDb()
+	if err != nil {
+		c.LoggerError("Unable to connect to database")
+		return data, err
+	}
+	//defer c.DB.Close()
 	request := ""
 	if c.WhereClause == "" {
 		request = "SELECT " + c.SelectClause + " FROM " + c.Table
