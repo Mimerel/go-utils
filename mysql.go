@@ -677,6 +677,66 @@ func (c *MariaDBConfiguration) Select2(requestString string) (response SelectRes
 	return response, nil
 }
 
+func (c *MariaDBConfiguration) Select3(requestString string) (response SelectResponse2, err error) {
+	err = c.connectMariaDb()
+	if err != nil {
+		c.LoggerError("Unable to connect to database")
+		return response, err
+	}
+	//defer c.DB.Close()
+
+	// Execute the query
+	rows, err := c.DB.Query(requestString)
+	if err != nil {
+		c.LoggerError("Failed to run Query : %+v", err)
+		return response, err
+	}
+
+	// Get column names
+	response.Columns, err = rows.Columns()
+	if err != nil {
+		c.LoggerError("Failed to get columns : %+v", err)
+		return response, err
+	}
+
+	// Make a slice for the values
+	values := make([]sql.RawBytes, len(response.Columns))
+	scanArgs := make([]interface{}, len(values))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	// Fetch rows
+	for rows.Next() {
+		// get RawBytes from data
+		err = rows.Scan(scanArgs...)
+		if err != nil {
+			c.LoggerError("Failed to get row : %+v", err)
+			return response, err
+		}
+		var rowBuilder = []string{}
+		for _, col := range values {
+			// Here we can check if the value is nil (NULL value)
+
+			if col == nil {
+				rowBuilder = append(rowBuilder, "")
+			} else {
+				rowBuilder = append(rowBuilder, string(col))
+			}
+		}
+		response.Rows = append(response.Rows, rowBuilder)
+		rowBuilder = nil
+	}
+	if err = rows.Err(); err != nil {
+		c.LoggerError("Failed to run Query : %+v", err)
+		return response, err
+	}
+	values = nil
+	rows = nil
+	scanArgs = nil
+	return response, nil
+}
+
 func SearchInTable(c *MariaDBConfiguration) (data interface{}, err error) {
 	if c.SelectClause == "" {
 		c.SelectClause = "*"
@@ -787,7 +847,7 @@ func SearchInTable3(c *MariaDBConfiguration) (data interface{}, err error) {
 		request = c.FullRequest
 	}
 	c.LoggerInfo("Sending request to database %s", request)
-	resp, err := c.Select2(request)
+	resp, err := c.Select3(request)
 	if err != nil {
 		c.LoggerError("Unable to launch select request : %v, %s", err, request)
 		return data, err
