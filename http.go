@@ -13,20 +13,20 @@ import (
 )
 
 type HttpRequestParams struct {
-	Url string
-	Method string
-	Body string
-	Headers map[string]string
-	UserAgent string
-	Timeout int64
-	Insecure bool
-	Retry int
-	LogPrefix string
+	Url               string
+	Method            string
+	Body              string
+	Headers           map[string]string
+	UserAgent         string
+	Timeout           int64
+	Insecure          bool
+	Retry             int
+	Proxy             string
+	LogPrefix         string
 	DelayBetweenRetry time.Duration
-	Debug bool
-	SuccessCode []int
+	Debug             bool
+	SuccessCode       []int
 }
-
 
 var log = logging.MustGetLogger("default")
 
@@ -38,7 +38,7 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 	for requestParams.Retry > 0 {
 		target, err := url.Parse(requestParams.Url)
 		if err != nil {
-			log.Errorf(requestParams.LogPrefix + "Unable to parse URL / Url format incorrect %+v", err)
+			log.Errorf(requestParams.LogPrefix+"Unable to parse URL / Url format incorrect %+v", err)
 			return err, nil
 		}
 
@@ -54,7 +54,7 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 
 		request, err := http.NewRequest(requestParams.Method, target.String(), body)
 		if err != nil {
-			log.Errorf(requestParams.LogPrefix + "Unable to create request %+v", err)
+			log.Errorf(requestParams.LogPrefix+"Unable to create request %+v", err)
 			return err, nil
 		}
 
@@ -66,6 +66,9 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 			request.Header.Set("User-Agent", requestParams.UserAgent)
 		}
 
+		if requestParams.Proxy != "" {
+			request.
+		}
 		timeout := time.Duration(60) * time.Second
 		if requestParams.Timeout != 0 {
 			timeout = time.Duration(requestParams.Timeout) * time.Second
@@ -85,21 +88,33 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 		if requestParams.DelayBetweenRetry == 0 {
 			requestParams.DelayBetweenRetry = 1
 		}
-		
+
 		log.Debugf(requestParams.LogPrefix+"Request run in insecure mode ? %t", insecure)
-		httpClient = http.Client{Timeout: timeout, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: insecure}}}
+
+		if requestParams.Proxy != "" {
+			proxyUrl, err := url.Parse(requestParams.Proxy)
+			if err != nil {
+				log.Debugf("Unable to set proxy")
+				httpClient = http.Client{Timeout: timeout, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: insecure}}}
+			} else {
+				log.Debugf("Unable to set proxy : " + requestParams.Proxy )
+				httpClient = http.Client{Timeout: timeout, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: insecure}, Proxy: http.ProxyURL(proxyUrl)}}
+			}
+		} else {
+			httpClient = http.Client{Timeout: timeout, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: insecure}}}
+		}
 
 		if requestParams.Debug {
-			log.Debug("Request : %v",request)
+			log.Debug("Request : %v", request)
 		}
 
 		response, err = httpClient.Do(request)
 		if err != nil || intInArray(response.StatusCode, requestParams.SuccessCode) {
 			if requestParams.Debug {
-				log.Debug("Response : %v",response)
+				log.Debug("Response : %v", response)
 			}
 			requestParams.Retry -= 1
-			log.Errorf(requestParams.LogPrefix + "Unable to execute Request %d reties left, %+v", requestParams.Retry, err)
+			log.Errorf(requestParams.LogPrefix+"Unable to execute Request %d reties left, %+v", requestParams.Retry, err)
 			if requestParams.Retry == 0 {
 				return fmt.Errorf("Too Many retires -> failed : %v", err), response
 			} else {
@@ -108,7 +123,7 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 		} else {
 			requestParams.Retry = 0
 			if requestParams.Debug {
-				log.Debug("Response : %v",response)
+				log.Debug("Response : %v", response)
 			}
 		}
 	}
@@ -127,7 +142,7 @@ func HttpReadResponse(response *http.Response) (err error, body []byte) {
 	return nil, body
 }
 
-func intInArray( value int, array []int) bool {
+func intInArray(value int, array []int) bool {
 	for _, v := range array {
 		if v == value {
 			return false
