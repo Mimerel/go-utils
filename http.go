@@ -65,7 +65,7 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 		if requestParams.UserAgent != "" {
 			request.Header.Set("User-Agent", requestParams.UserAgent)
 		}
-		
+
 		timeout := time.Duration(60) * time.Second
 		if requestParams.Timeout != 0 {
 			timeout = time.Duration(requestParams.Timeout) * time.Second
