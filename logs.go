@@ -2,7 +2,6 @@ package go_utils
 
 import (
 	"fmt"
-	"time"
 )
 
 type LogLevel int
@@ -35,34 +34,34 @@ func NewLogger(level LogLevel) LogParams {
 func (l LogParams) Info(message string, args ...interface{}) {
 	if l.level >= 1 {
 		computedMessage := fmt.Sprintf(message, args...)
-		fmt.Printf(NoticeColor , time.Now().Format(time.RFC3339) + " Info  " + computedMessage + " \n")
+		fmt.Printf(NoticeColor , localTimeString() + " Info  " + computedMessage + " \n")
 	}
 }
 
 func (l LogParams) Debug(message string, args ...interface{}) {
 	if l.level >= 2 {
 		computedMessage := fmt.Sprintf(message, args...)
-		fmt.Printf(DebugColor,  time.Now().Format(time.RFC3339) + " Debug " + computedMessage + " \n")
+		fmt.Printf(DebugColor,  localTimeString() + " Debug " + computedMessage + " \n")
 	}
 }
 
 func (l LogParams) DebugPlus(message string, args ...interface{}) {
 	if l.level >= 2 {
 		computedMessage := fmt.Sprintf(message, args...)
-		fmt.Printf(DebugPlusColor,  time.Now().Format(time.RFC3339) + " Debug " + computedMessage + " \n")
+		fmt.Printf(DebugPlusColor,  localTimeString() + " Debug " + computedMessage + " \n")
 	}
 }
 
 func (l LogParams) Warn(message string, args ...interface{}) {
 	if l.level >= 2 {
 		computedMessage := fmt.Sprintf(message, args...)
-		fmt.Printf(WarnColor,  time.Now().Format(time.RFC3339) + " Warn  " + computedMessage + " \n")
+		fmt.Printf(WarnColor,  localTimeString() + " Warn  " + computedMessage + " \n")
 	}
 }
 
 func (l LogParams) Error(message string, args ...interface{}) {
 	if l.level >= 0 {
 		computedMessage := fmt.Sprintf(message, args...)
-		fmt.Printf(ErrorColor ,time.Now().Format(time.RFC3339) + " Error " + computedMessage + " \n")
+		fmt.Printf(ErrorColor ,localTimeString() + " Error " + computedMessage + " \n")
 	}
 }

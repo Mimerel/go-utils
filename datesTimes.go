@@ -1,6 +1,7 @@
 package go_utils
 
 import (
+	"strings"
 	"time"
 )
 
@@ -68,4 +69,20 @@ func TimestampFromYYYYMMDDUTC(moment string) (date time.Time, err error) {
   moment += "T12:00:00.000Z"
   layout := "2006-01-02T15:04:05.000Z"
   return time.ParseInLocation(layout, moment, time.UTC)
+}
+
+func LocalTime() time.Time {
+	return time.Now().In(Location())
+}
+
+func Location() *time.Location {
+	loc, _ := time.LoadLocation("Europe/Paris")
+	return loc
+}
+
+func localTimeString() string {
+	value := LocalTime().Format(time.RFC3339)
+	value = strings.Replace(value, "T", " ", -1)
+	value = strings.Replace(value, "Z", "", -1)
+	return value
 }
