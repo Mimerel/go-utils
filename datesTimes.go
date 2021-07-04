@@ -1,7 +1,6 @@
 package go_utils
 
 import (
-	"strings"
 	"time"
 )
 
@@ -81,8 +80,7 @@ func Location() *time.Location {
 }
 
 func localTimeString() string {
-	value := LocalTime().Format(time.RFC3339)
-	value = strings.Replace(value, "T", " ", -1)
-	value = strings.Replace(value, "Z", "", -1)
+	value := string(LocalTime().Format(time.RFC3339))
+	value = value[0:10] + " " + value[11:19]
 	return value
 }
