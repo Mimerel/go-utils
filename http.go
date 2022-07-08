@@ -71,7 +71,7 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 			timeout = time.Duration(requestParams.Timeout) * time.Second
 		}
 
-		log.Debugf(requestParams.LogPrefix+"Timeout duration set to : %d seconds", timeout/time.Second)
+		//log.Debugf(requestParams.LogPrefix+"Timeout duration set to : %d seconds", timeout/time.Second)
 
 		request.Close = true
 
@@ -86,7 +86,7 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 			requestParams.DelayBetweenRetry = 1
 		}
 
-		log.Debugf(requestParams.LogPrefix+"Request run in insecure mode ? %t", insecure)
+		//log.Debugf(requestParams.LogPrefix+"Request run in insecure mode ? %t", insecure)
 
 		if requestParams.Proxy != "" {
 			proxyUrl, err := url.Parse(requestParams.Proxy)
@@ -128,7 +128,7 @@ func HttpExecuteRequest(requestParams *HttpRequestParams) (err error, response *
 }
 
 func HttpReadResponse(response *http.Response) (err error, body []byte) {
-	log.Debugf("Reading Response")
+	//log.Debugf("Reading Response")
 	body, err = ioutil.ReadAll(response.Body)
 	if err != nil {
 		log.Errorf("Unable to read Response %+v", err)
